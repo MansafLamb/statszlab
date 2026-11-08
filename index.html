@@ -1,0 +1,1006 @@
+<title>Z-Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: sticky brand bar + scrolling topic chips; one topic at a time in 4 steps (learn, solutions, how, test). */
+:root{--bg:#f3f6f8;--card:#ffffff;--fg:#13212c;--mute:#5b6c7a;--line:#d6dfe6;--accent:#0f766e;--accent-fg:#ffffff;--soft:#e4f1ef;--shade:#e8590c;--you:#2563eb;--good:#15803d;--bad:#c0262d;--warn:#fff4e5;--paper:#fffdf7;--rule:#e3e8ee;
+--display:'Bricolage Grotesque',system-ui,sans-serif;--body:'Source Sans 3',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d151b;--card:#15212a;--fg:#e6eef3;--mute:#94a6b4;--line:#2a3a47;--accent:#2dd4bf;--accent-fg:#052420;--soft:#11302c;--shade:#fb923c;--you:#60a5fa;--good:#4ade80;--bad:#f87171;--warn:#2d2214;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d151b;--card:#15212a;--fg:#e6eef3;--mute:#94a6b4;--line:#2a3a47;--accent:#2dd4bf;--accent-fg:#052420;--soft:#11302c;--shade:#fb923c;--you:#60a5fa;--good:#4ade80;--bad:#f87171;--warn:#2d2214;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:17px/1.55 var(--body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--card)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border-bottom:1px solid var(--line)}
+.topin,.navwrap,.page,footer{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.topin{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
+.brand{font:800 1.45rem var(--display);letter-spacing:-.01em}.brand span{color:var(--accent)}
+.by{font-size:.85rem;color:var(--mute)}.by b{color:var(--fg)}
+.topin .tools{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}.topin .tools .ghost{padding:7px 11px;font-size:.88rem}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:20;max-width:90vw}#toast.show{opacity:1;transform:translateX(-50%)}
+.navwrap{padding-block:0 10px}
+#nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;padding-bottom:4px;align-items:center}
+.chip{flex:none;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:6px 12px;font:600 .88rem var(--body);cursor:pointer;display:flex;gap:6px;align-items:center}
+.chip.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.navunit{flex:none;font:600 .7rem var(--body);text-transform:uppercase;letter-spacing:.09em;color:var(--mute);padding:0 4px 0 10px}
+.cnt{font:500 .72rem var(--mono);opacity:.75}
+.page{padding-block:20px 40px;display:flex;flex-direction:column;gap:16px}
+#main,#sect{display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}h2{font-size:1.7rem}
+p{margin:0}.mute{color:var(--mute)}.small{font-size:.85rem}
+.eyebrow{font:700 .74rem var(--body);letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card.warn{background:var(--warn)}
+.hero h2{font-size:1.5rem}
+.prose{display:flex;flex-direction:column;gap:8px}.prose ul,.card ul{margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:4px}
+.big{font:500 1.05rem/1.6 var(--mono);background:var(--soft);padding:10px 14px;border-radius:6px;overflow-x:auto}
+.meter{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.meter span{display:block;height:100%;background:var(--accent)}.meter.sm{height:5px;width:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.gridunit{grid-column:1/-1;margin-top:6px}
+.tcard{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;cursor:pointer;color:var(--fg);font:inherit}
+.tcard:hover{border-color:var(--accent)}.tnum{grid-row:span 3;font:800 1.6rem var(--display);color:var(--accent)}.tname{font-weight:700}
+.thead{display:flex;flex-direction:column;gap:4px}
+.steps{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.steps button{flex:none;background:none;border:0;border-bottom:3px solid transparent;color:var(--mute);font:700 .95rem var(--body);padding:8px 10px;cursor:pointer}
+.steps button[aria-selected=true]{color:var(--fg);border-bottom-color:var(--accent)}
+.gbox{overflow-x:auto}.gbox svg{width:100%;min-width:320px;height:auto;display:block}
+.qtext{font-size:1.08rem}
+ol.sol{margin:0;padding-left:1.4rem;display:flex;flex-direction:column;gap:6px}.big-ol{font-size:1.05rem}
+.ans{font-size:1.05rem;padding:8px 12px;border-left:3px solid var(--accent);background:var(--soft)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row.end{justify-content:flex-end}.row.between{justify-content:space-between}
+button.pri,button.sec,button.ghost{font:700 .95rem var(--body);padding:9px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--accent)}
+button.pri{background:var(--accent);color:var(--accent-fg)}button.sec{background:transparent;color:var(--accent)}
+button.ghost{background:transparent;color:var(--fg);border-color:var(--line);font-weight:600}
+button:disabled{opacity:.55;cursor:default}
+:focus-visible{outline:2px solid var(--you);outline-offset:2px}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:7px;padding:6px 12px;font:600 .9rem var(--body);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.qd{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--fg);font:600 .9rem var(--mono);cursor:pointer}
+.qd.first{background:var(--good);color:var(--card);border-color:var(--good)}.qd.solved{border:2px solid var(--good);color:var(--good)}.qd.shown{border:2px solid var(--shade);color:var(--shade)}
+.qd.cur{outline:2px solid var(--fg);outline-offset:2px}
+.lives{display:flex;gap:5px}.lives .dot{width:12px;height:12px;border-radius:50%;background:var(--bad)}.lives .dot.off{background:var(--line)}
+.choices{display:flex;flex-direction:column;gap:8px}
+.choice{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px;padding:10px 14px;font:inherit;cursor:pointer}
+.choice:hover:not(:disabled){border-color:var(--accent)}.choice.right{border:2px solid var(--good);background:var(--soft)}.choice.wrong{border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+.fields{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:3px;flex:1 1 150px;min-width:0;font-size:.85rem;color:var(--mute)}.field.wide{flex-basis:100%}
+.field input[type=text],textarea{font:500 1.05rem var(--mono);padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);width:100%;min-width:0}
+textarea{font-size:.95rem;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input.bad{border-color:var(--bad)!important}input.good{border-color:var(--good)!important}
+.fb{padding:12px 14px;border-radius:8px;border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.fb.ok{border-color:var(--good)}.fb.ok>b{color:var(--good)}.fb.no{border-color:var(--bad)}.fb.no>b{color:var(--bad)}.fb.rev{border-color:var(--shade);background:var(--soft)}
+.anskey{font:500 1rem var(--mono)}.hint{color:var(--mute);font-size:.92rem}.badtxt{color:var(--bad)}
+.padtools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.paper{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper);background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--rule) 31px 32px)}
+.paper canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
+.tbl{border-collapse:collapse;font:500 .82rem var(--mono);font-variant-numeric:tabular-nums}.tbl th,.tbl td{border:1px solid var(--line);padding:3px 6px;text-align:right}.tbl th{background:var(--soft)}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);padding:0;max-width:min(760px,94vw);max-height:86vh}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dlghead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--card)}
+.dlgbody{padding:12px 16px;overflow:auto;max-height:calc(86vh - 60px);display:flex;flex-direction:column;gap:8px}
+footer{padding-block:10px 30px;color:var(--mute);font-size:.88rem;text-align:center}footer b{color:var(--fg)}
+.toc{display:flex;flex-wrap:wrap;gap:6px}.toc a{font-size:.85rem;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:3px 10px;text-decoration:none;background:var(--card)}
+.stps{display:flex;flex-direction:column;gap:14px}.stp{display:grid;grid-template-columns:30px 1fr;gap:10px}
+.snum{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font:700 .85rem var(--mono);display:grid;place-items:center}
+.sbody{display:flex;flex-direction:column;gap:6px;min-width:0}.sbody h4{margin:0;font:700 1.02rem var(--body)}.why{color:var(--mute)}
+.work{font:500 .98rem/1.7 var(--mono);background:var(--paper);color:#18222d;border:1px solid var(--line);border-left:3px solid var(--shade);border-radius:6px;padding:8px 12px;overflow-x:auto}
+.hid{filter:blur(7px);cursor:pointer;user-select:none}.hid:hover{filter:blur(5px)}
+.tog{display:flex;gap:8px;align-items:center;font-weight:600;cursor:pointer}.tog input{width:18px;height:18px;accent-color:var(--accent)}
+.cases{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}.cases>div{border:1px solid var(--line);border-radius:8px;padding:8px;font-size:.9rem}.cases svg{width:100%;height:auto}
+.prose ol{margin:0;padding-left:1.3rem;display:flex;flex-direction:column;gap:4px}.fs td:nth-child(2){white-space:nowrap}.fs td,.fs th{text-align:left}
+#main h3{font-size:1.3rem}
+/* graph */
+.ax{stroke:var(--mute);stroke-width:1}.cv{fill:none;stroke:var(--fg);stroke-width:2.2}.gh{fill:none;stroke:var(--mute);stroke-width:1.6;stroke-dasharray:4 4}
+.sh{fill:var(--shade);fill-opacity:.42}.mk{stroke:var(--fg);stroke-width:2;stroke-dasharray:5 3}.mk.you{stroke:var(--you);stroke-width:2.6}
+.mkt{fill:var(--fg);font:600 12px var(--mono)}.mkt.you{fill:var(--you)}.tk{fill:var(--mute);font:12px var(--mono)}.zt{opacity:.7}.lb{fill:var(--fg);font:600 13px var(--body)}
+.bar{fill:var(--line)}.baron{fill:var(--accent);fill-opacity:.55}.cil{stroke:var(--you);stroke-width:4;stroke-linecap:round}.cid{fill:var(--you)}
+@media (max-width:520px){h2{font-size:1.4rem}.card{padding:14px}.brand{font-size:1.25rem}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+<header class="top"><div class="topin"><div class="brand">Z<span>-</span>Lab</div><div class="by">Made by <b>Christian</b></div><div class="seg" id="mode"><button data-mode="practice">Practice</button><button data-mode="study">Study</button></div><div class="tools"><button class="ghost" id="btnsave" title="Download a file with your progress">Save progress</button><button class="ghost" id="btnload" title="Upload a saved progress file">Load progress</button><input type="file" id="loadfile" accept=".json,application/json" hidden><button class="ghost" id="btnz">Z-table</button><button class="ghost" id="btnt">t-table</button></div></div>
+<div class="navwrap"><nav id="nav" aria-label="Topics"></nav></div></header>
+<div class="page"><main id="main"></main></div>
+<footer>Z-Lab · ECON3169 Statistics finals reviewer · Made by <b>Christian Luther S. Acob</b></footer>
+<dialog id="tbl"><div class="dlghead"><b id="tbltitle">Table</b><button class="ghost" id="tblclose">Close</button></div><div class="dlgbody" id="tblbody"></div></dialog>
+<script>
+// ===== Z-Lab core: math, tables, random numbers, graph, solution helpers =====
+function erf(x){const s=x<0?-1:1;x=Math.abs(x);const t=1/(1+.3275911*x);const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);return s*y}
+const Phi=z=>.5*(1+erf(z/Math.SQRT2));
+const r2=v=>Math.round(v*100)/100;
+const r4=v=>Math.round(v*10000)/10000;
+// z-table value: area from 0 to |z| (z rounded to 2 decimals, like the printed table)
+const A=z=>r4(Phi(Math.abs(r2(z)))-.5);
+// reverse lookup: closest z (2 decimals) whose table area matches
+function invA(area){let best=0,bd=9;for(let i=0;i<=349;i++){const z=i/100,d=Math.abs(A(z)-area);if(d<bd-1e-9){bd=d;best=z}}return best}
+const ZC={90:1.645,95:1.96,99:2.576};
+const TT={1:[6.314,12.706,63.657],2:[2.920,4.303,9.925],3:[2.353,3.182,5.841],4:[2.132,2.776,4.604],5:[2.015,2.571,4.032],6:[1.943,2.447,3.707],7:[1.895,2.365,3.499],8:[1.860,2.306,3.355],9:[1.833,2.262,3.250],10:[1.812,2.228,3.169],11:[1.796,2.201,3.106],12:[1.782,2.179,3.055],13:[1.771,2.160,3.012],14:[1.761,2.145,2.977],15:[1.753,2.131,2.947],16:[1.746,2.120,2.921],17:[1.740,2.110,2.898],18:[1.734,2.101,2.878],19:[1.729,2.093,2.861],20:[1.725,2.086,2.845],21:[1.721,2.080,2.831],22:[1.717,2.074,2.819],23:[1.714,2.069,2.807],24:[1.711,2.064,2.797],25:[1.708,2.060,2.787],26:[1.706,2.056,2.779],27:[1.703,2.052,2.771],28:[1.701,2.048,2.763],29:[1.699,2.045,2.756]};
+const tval=(df,cl)=>TT[df][cl===90?0:cl===95?1:2];
+
+// formatting
+const f4=v=>r4(v).toFixed(4);
+const f2=v=>r2(v).toFixed(2);
+const nf=(v,d=3)=>{const p=10**d;return (Math.round(v*p)/p).toLocaleString('en-US',{maximumFractionDigits:d})};
+const pc=v=>(v*100).toFixed(2)+'%';
+
+// seeded random numbers so every set is repeatable
+function RNG(seed){let a=seed>>>0;const n=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  const r={n,int:(lo,hi)=>lo+Math.floor(n()*(hi-lo+1)),pick:arr=>arr[Math.floor(n()*arr.length)],step:(lo,hi,s)=>r2(lo+Math.floor(n()*((hi-lo)/s+1))*s),
+    sign:()=>n()<.5?-1:1,shuffle:arr=>{arr=arr.slice();for(let i=arr.length-1;i>0;i--){const j=Math.floor(n()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}};return r}
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+
+// ===== graph =====
+// opts: mu, sd, regions:[[a,b]] (null = open end), markers:[{x,label,kind}], bars:{lo,hi,on:[a,b]}, note, showZ, ci:[lo,hi]
+function graph(o){
+  const mu=o.mu??0,sd=o.sd??1,W=640,H=250,L=30,R=610,B=192,Hh=150,tsd=o.ghost?o.ghost.sd:sd,lo=o.ghost?mu-3.8*tsd:mu-3.8*sd,hi=o.ghost?mu+3.8*tsd:mu+3.8*sd;
+  const px=x=>L+(x-lo)/(hi-lo)*(R-L),py=z=>B-Hh*Math.exp(-z*z/2),cl=x=>Math.min(hi,Math.max(lo,x));
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Bell curve">`;
+  if(o.bars){const b=o.bars,step=1;const w=(R-L)/(hi-lo)*step;
+    for(let k=Math.ceil(lo);k<=Math.floor(hi);k++){const on=b.on&&k>=b.on[0]&&k<=b.on[1];const h=Hh*Math.exp(-(((k-mu)/sd)**2)/2);
+      s+=`<rect x="${px(k-.5)}" y="${B-h}" width="${Math.max(.5,w-.6)}" height="${h}" class="${on?'baron':'bar'}"/>`}}
+  (o.regions||[]).forEach((r,ri)=>{let a=r[0]==null?lo:cl(r[0]),b=r[1]==null?hi:cl(r[1]);if(a>=b)return;
+    let d=`M${px(a)} ${B}`;for(let i=0;i<=70;i++){const x=a+(b-a)*i/70;d+=`L${px(x)} ${py((x-mu)/sd)}`}d+=`L${px(b)} ${B}Z`;
+    s+=`<path class="${o.regionClass||'sh'}" d="${d}"/>`});
+  let d="";for(let i=0;i<=140;i++){const x=lo+(hi-lo)*i/140;d+=(i?"L":"M")+px(x).toFixed(1)+" "+py((x-mu)/sd).toFixed(1)}
+  if(o.ghost){let g='';const gh=Hh*sd/tsd;for(let i=0;i<=140;i++){const x=lo+(hi-lo)*i/140;g+=(i?'L':'M')+px(x).toFixed(1)+' '+(B-gh*Math.exp(-(((x-mu)/tsd)**2)/2)).toFixed(1)}s+=`<path class="gh" d="${g}"/>`}
+  s+=`<path class="cv" d="${d}"/><line class="ax" x1="${L}" y1="${B}" x2="${R}" y2="${B}"/>`;
+  for(let k=-3;k<=3;k++){const x=mu+k*tsd;s+=`<line class="ax" x1="${px(x)}" y1="${B}" x2="${px(x)}" y2="${B+5}"/><text class="tk" x="${px(x)}" y="${B+19}" text-anchor="middle">${nf(x,tsd<.05?4:tsd<1?3:2)}</text>`;
+    if(o.showZ!==false)s+=`<text class="tk zt" x="${px(x)}" y="${B+35}" text-anchor="middle">z=${k}</text>`}
+  if(o.ci){const [a,b]=o.ci;if(isFinite(a)&&isFinite(b)&&a<b){const ya=B+46;s+=`<line class="cil" x1="${px(cl(a))}" y1="${ya}" x2="${px(cl(b))}" y2="${ya}"/><circle class="cid" cx="${px(cl(a))}" cy="${ya}" r="4"/><circle class="cid" cx="${px(cl(b))}" cy="${ya}" r="4"/>`}}
+  (o.markers||[]).forEach(m=>{if(m.x==null||!isFinite(m.x))return;const x=cl(m.x),y=py((x-mu)/sd);
+    s+=`<line class="mk ${m.kind||''}" x1="${px(x)}" y1="${B}" x2="${px(x)}" y2="${y-6}"/><text class="mkt ${m.kind||''}" x="${Math.min(R-20,Math.max(L+20,px(x)))}" y="${Math.max(14,y-12)}" text-anchor="middle">${m.label??nf(m.x)}</text>`});
+  if(o.note)s+=`<text class="lb" x="${W-12}" y="20" text-anchor="end">${o.note}</text>`;
+  return s+`</svg>`}
+
+// ===== probability solver (the class routine) =====
+// region: [a,b] with null for open end; or {tails:[a,b]} = left of a plus right of b
+function solveProb(mu,se,region,opt={}){
+  const st=[],sym=opt.sym||'x';
+  const zOf=v=>(v-mu)/se, zs=v=>`z = (${nf(v)} − ${nf(mu)}) / ${nf(se,4)} = <b>${f2(zOf(v))}</b>`;
+  if(region.tails){const [a,b]=region.tails,za=r2(zOf(a)),zb=r2(zOf(b));
+    if(mu!==0||se!==1)st.push(`Convert both edges: ${zs(a)} and ${zs(b)}.`);
+    const t1=r4(.5-A(za)),t2=r4(.5-A(zb));
+    st.push(`Left tail: 0.5 − A(${f2(Math.abs(za))}) = 0.5 − ${f4(A(za))} = ${f4(t1)}.`);
+    st.push(`Right tail: 0.5 − A(${f2(Math.abs(zb))}) = 0.5 − ${f4(A(zb))} = ${f4(t2)}.`);
+    const ans=r4(t1+t2);st.push(`Two separate tails, so add them: ${f4(t1)} + ${f4(t2)} = <b>${f4(ans)}</b> (${pc(ans)}).`);return{ans,steps:st}}
+  const [a,b]=region;const za=a==null?null:r2(zOf(a)),zb=b==null?null:r2(zOf(b));
+  const cv=[];if(a!=null)cv.push(zs(a));if(b!=null)cv.push(zs(b));
+  if(mu!==0||se!==1)st.push(`Convert to z: ${cv.join(' and ')}.`);
+  let ans;
+  if(a==null){const Ab=A(zb);if(zb>=0){ans=.5+Ab;st.push(`You want everything to the left of a positive z. That is the whole left half plus the table area: 0.5 + A(${f2(zb)}) = 0.5 + ${f4(Ab)}.`)}
+    else{ans=.5-Ab;st.push(`Left of a negative z is the small left tail: 0.5 − A(${f2(-zb)}) = 0.5 − ${f4(Ab)}.`)}}
+  else if(b==null){const Aa=A(za);if(za>=0){ans=.5-Aa;st.push(`Right of a positive z is the small right tail: 0.5 − A(${f2(za)}) = 0.5 − ${f4(Aa)}.`)}
+    else{ans=.5+Aa;st.push(`Right of a negative z is the big side: A(${f2(-za)}) + 0.5 = ${f4(Aa)} + 0.5.`)}}
+  else{const Aa=A(za),Ab=A(zb);
+    if(za===0||zb===0){ans=za===0?Ab:Aa;st.push(`One edge is the mean (z = 0), so the table area is the answer: A(${f2(Math.abs(za===0?zb:za))}) = ${f4(ans)}.`)}
+    else if(za*zb>0){ans=Math.abs(Ab-Aa);st.push(`Both z are on the same side of the middle, so subtract: A(${f2(Math.abs(zb))}) = ${f4(Ab)}, A(${f2(Math.abs(za))}) = ${f4(Aa)}, difference = ${f4(Math.abs(Ab-Aa))}.`)}
+    else{ans=Aa+Ab;st.push(`The z values are on opposite sides of the middle, so add: A(${f2(-za)}) + A(${f2(zb)}) = ${f4(Aa)} + ${f4(Ab)}.`)}}
+  ans=r4(ans);st.push(`Answer: <b>${f4(ans)}</b>, or ${pc(ans)}.`);return{ans,steps:st}}
+
+// z-table html (area from 0 to z)
+function zTableHTML(){let h='<table class="tbl"><thead><tr><th>z</th>';for(let c=0;c<10;c++)h+=`<th>.0${c}</th>`;h+='</tr></thead><tbody>';
+  for(let r=0;r<35;r++){h+=`<tr><th>${(r/10).toFixed(1)}</th>`;for(let c=0;c<10;c++)h+=`<td data-z="${(r/10+c/100).toFixed(2)}">${A(r/10+c/100).toFixed(4).slice(1)}</td>`;h+='</tr>'}return h+'</tbody></table>'}
+function tTableHTML(){let h='<table class="tbl"><thead><tr><th>df</th><th>90%</th><th>95%</th><th>99%</th></tr></thead><tbody>';
+  for(let d=1;d<=29;d++)h+=`<tr><th>${d}</th><td>${TT[d][0].toFixed(3)}</td><td>${TT[d][1].toFixed(3)}</td><td>${TT[d][2].toFixed(3)}</td></tr>`;
+  return h+'<tr><th>∞ (z)</th><td>1.645</td><td>1.960</td><td>2.576</td></tr></tbody></table>'}
+
+// ===== Unit 1: Normal Distribution (from the class PPT) =====
+// question helpers
+const QP=(text,mu,se,region,o={})=>{const s=solveProb(mu,se,region,o);const reg=region.tails?[[null,region.tails[0]],[region.tails[1],null]]:[region];
+  return{text,fields:[{label:'Probability',ans:s.ans,tol:.0025,type:'prob'}],steps:(o.pre||[]).concat(s.steps),graph:{mu,sd:se,regions:reg,showZ:o.showZ},hint:o.hint||'Turn each edge into z, look up A(z), then decide: tail (0.5 − A), big side (0.5 + A), subtract (same side) or add (opposite sides).'}};
+const MC=(text,choices,correct,steps,o={})=>({text,choices,correct,steps,...o});
+const segs=[34.13,13.59,2.14,.13]; // % in each band from the mean outward (slide figure)
+const band=(k1,k2)=>{let s=0;for(let k=k1;k<k2;k++){const i=k>=0?k:-k-1;s+=i<3?segs[i]:.13}return r2(s)};
+
+const CTX_APP=[
+ {n:'Pag-ibig salary loan of RFS Pharmacy employees',u:'pesos',mu:23000,sd:2500,st:100},
+ {n:'age of bank managers',u:'years',mu:40,sd:5,st:1},
+ {n:'score on the UST mental ability test',u:'points',mu:180,sd:25,st:1},
+ {n:'monthly salary of call center agents (in thousands)',u:'thousand pesos',mu:23.8,sd:4.45,st:.1},
+ {n:'daily earnings of a jeepney driver',u:'pesos',mu:2500,sd:300,st:10},
+ {n:'Grab ride time from España to Makati',u:'minutes',mu:35,sd:8,st:1},
+ {n:'monthly electric bill of Sampaloc households',u:'pesos',mu:3200,sd:650,st:10}];
+const CTX_CLT=[
+ {n:'cost per household of owning a brand new car',u:'',mu:5000,sd:1230,ns:[36,40,49,64]},
+ {n:'age of cars registered in LTO',u:'months',mu:120,sd:20,ns:[25,35,36,49]},
+ {n:'liters of fresh milk a person drinks in a month',u:'liters',mu:18,sd:4.5,ns:[32,36,40,50]},
+ {n:'weekly allowance of UST students',u:'pesos',mu:1500,sd:400,ns:[30,36,50,64]},
+ {n:'kilos of rice a household buys per month',u:'kg',mu:25,sd:6,ns:[30,36,45,60]}];
+const CTX_BIN=[
+ {w:'Filipino drivers who have a professional driver\'s license',p:[.14,.12,.16]},
+ {w:'Rotary Club members who are single',p:[.08,.1,.12]},
+ {w:'handkerchief buyers who prefer the EEE brand',p:[.2,.25,.3]},
+ {w:'UST students who own a laptop',p:[.6,.65,.7]},
+ {w:'voters in a district who favor candidate B',p:[.55,.45,.5]},
+ {w:'items from a factory line that are defective',p:[.05,.06,.04]}];
+
+const UNIT_A=[
+// ---------------------------------------------------------------- 1
+{id:'curve',name:'The normal curve',unit:'Normal Distribution',
+ learn:[
+  ['What it is','The <b>normal distribution</b> (also called the Gaussian distribution or bell curve) describes data that bunch up around an average. Most values sit near the middle, and fewer and fewer sit far away. De Moivre worked it out in 1733 as a shortcut for the binomial.'],
+  ['The 8 properties from the PPT','<ul><li>Bell-shaped</li><li>Mean = median = mode, all at the center</li><li>Unimodal (one peak)</li><li>Symmetric: both halves are mirror images</li><li>Continuous</li><li>Asymptotic: the tails get close to the x-axis but never touch it</li><li>Total area under the curve = 1.00 (100%)</li><li>Empirical rule: about 68% within 1 sd, 95% within 2 sd, 99.7% within 3 sd</li></ul>'],
+  ['The band percentages','From the middle outward, each side has <b>34.13%</b> (0 to 1 sd), <b>13.59%</b> (1 to 2 sd), <b>2.14%</b> (2 to 3 sd) and <b>0.13%</b> beyond 3 sd. Beyond 2 sd on one side is 2.14 + 0.13 = <b>2.28%</b>. Add the bands you need.'],
+  ['Is my data normal? (Pearson\'s Index)','<div class="big">PI = 3(mean − median) / sd</div>If <b>−1 ≤ PI ≤ +1</b>, the data are approximately normal. If PI is above +1 or below −1, the data are significantly skewed. (The slide writes the inequality backwards; this is the correct reading.) You can also check with a histogram and look for outliers.']],
+ play:'bands',
+ examples:[
+  {title:'Call center salaries (PPT)',text:'A survey on monthly salary (in thousands) of call center agents has mean 23.80, median 23.70 and sd 4.45. Are the data approximately normal?',
+   graph:{mu:23.8,sd:4.45,markers:[{x:23.8,label:'mean 23.80'}]},
+   steps:['Formula: PI = 3(mean − median) / sd.','Plug in: PI = 3(23.80 − 23.70) / 4.45 = 3(0.10) / 4.45.','PI = 0.30 / 4.45 = <b>0.07</b>.','0.07 is between −1 and +1, so the data are <b>approximately normally distributed</b>.'],answer:'PI = 0.07, approximately normal'},
+  {title:'Reading the band figure',text:'Scores have mean 180 and sd 25. What percent of scores are between 155 and 230?',graph:{mu:180,sd:25,regions:[[155,230]]},
+   steps:['155 is 1 sd below (180 − 25). 230 is 2 sd above (180 + 50).','Add the bands: 34.13 (−1 to 0) + 34.13 (0 to 1) + 13.59 (1 to 2).','Answer: <b>81.85%</b>.'],answer:'81.85%'}],
+ how:{steps:['For properties: remember the 8 facts. Symmetric, center = mean = median = mode, area 1, tails never touch.','For the empirical rule: find how many sd each edge is from the mean, then add the band percentages.','For normality: compute PI = 3(mean − median)/sd and check if it is between −1 and +1.'],
+  mistakes:['Using the 2σ range (95%) when the question asks about one side only. One side within 2 sd is 47.72%, not 95%.','Forgetting the 3 in Pearson\'s Index.','Saying "normal" when PI = 1.4. It must be between −1 and +1.'],formula:'PI = 3(x̄ − median) / s'},
+ gen:{
+  easy:[
+   r=>{const T=['The mean, median and mode are equal and sit at the center','The total area under the curve is 1 (100%)','The curve is symmetric about the mean','The tails never touch the x-axis','It has exactly one peak (unimodal)','It is a continuous distribution'],F=['The mean is always bigger than the median','The total area under the curve is 0.5','The tails touch the x-axis at 3 standard deviations','It has two peaks','The right side is longer than the left side','It is only used for whole-number counts'];
+    const t=r.pick(T),fs=r.shuffle(F).slice(0,3),ch=r.shuffle([t,...fs]);return MC('Which statement about a normal curve is TRUE?',ch,ch.indexOf(t),[`True: "${t}". The others break one of the 8 properties.`])},
+   r=>{const k=r.int(1,3),v=[68,95,99.7][k-1];return{text:`Using the empirical rule, about what percent of values fall within ${k} standard deviation${k>1?'s':''} of the mean?`,fields:[{label:'Percent',ans:v,tol:.6,type:'pct'}],steps:[`68% within 1 sd, 95% within 2 sd, 99.7% within 3 sd. So <b>${v}%</b>.`],graph:{mu:0,sd:1,regions:[[-k,k]]},hint:'68 – 95 – 99.7.'}},
+   r=>{const T=['The total area under the curve is 1','Mean = median = mode','The curve is symmetric'],F=['The tails eventually touch the x-axis','The mean is to the right of the median','There are two modes','The total area is 100 square units'];
+    const f=r.pick(F),ts=r.shuffle(T),ch=r.shuffle([f,...ts]);return MC('Which statement about a normal curve is FALSE?',ch,ch.indexOf(f),[`False: "${f}". A normal curve is symmetric, has one peak, area 1, and its tails never touch the axis.`])},
+   r=>{const side=r.pick(['right','left']);return{text:`What fraction of the total area under a normal curve lies to the ${side} of the mean?`,fields:[{label:'Area',ans:.5,tol:.001,type:'prob'}],steps:['The curve is symmetric and the whole area is 1.',`So each side of the mean holds <b>0.5</b> (50%).`],graph:{mu:0,sd:1,regions:[side==='right'?[0,null]:[null,0]]},hint:'Symmetric + total area 1.'}},
+   r=>{const k=r.int(1,2);const v=k===1?34.13:47.72;return{text:`About what percent of values lie between the mean and ${k} sd <b>above</b> the mean?`,fields:[{label:'Percent',ans:v,tol:.3,type:'pct'}],steps:[k===1?'That is one band: <b>34.13%</b>.':'Two bands: 34.13 + 13.59 = <b>47.72%</b>.'],graph:{mu:0,sd:1,regions:[[0,k]]},hint:'Bands from the middle: 34.13, 13.59, 2.14, 0.13.'}}],
+  medium:[
+   r=>{const c=r.pick(CTX_APP);let k1=r.int(-3,1),k2=r.int(k1+1,3);const a=c.mu+k1*c.sd,b=c.mu+k2*c.sd,v=band(k1,k2);
+    return{text:`The ${c.n} is normal with mean ${nf(c.mu)} and sd ${nf(c.sd)}. Using the band percentages, what percent of values fall between ${nf(a)} and ${nf(b)}?`,fields:[{label:'Percent',ans:v,tol:.3,type:'pct'}],
+     steps:[`${nf(a)} is ${k1} sd from the mean and ${nf(b)} is ${k2} sd from the mean.`,`Add the bands from ${k1} to ${k2}: ${Array.from({length:k2-k1},(_,i)=>{const k=k1+i,j=k>=0?k:-k-1;return segs[j]}).join(' + ')} = <b>${v}%</b>.`],graph:{mu:c.mu,sd:c.sd,regions:[[a,b]]},hint:'How many sd is each edge from the mean? Then add bands: 34.13, 13.59, 2.14.'}},
+   r=>{const c=r.pick(CTX_APP),k=r.int(1,2),up=r.n()<.5;const x=c.mu+(up?k:-k)*c.sd,v=k===1?15.87:2.28;
+    return{text:`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. About what percent are ${up?'above':'below'} ${nf(x)}?`,fields:[{label:'Percent',ans:v,tol:.3,type:'pct'}],steps:[`${nf(x)} is ${k} sd ${up?'above':'below'} the mean.`,k===1?'Beyond 1 sd on one side: 13.59 + 2.14 + 0.13 = <b>15.87%</b> (or 50 − 34.13).':'Beyond 2 sd on one side: 2.14 + 0.13 = <b>2.28%</b>.'],graph:{mu:c.mu,sd:c.sd,regions:[up?[x,null]:[null,x]]},hint:'One side holds 50%. Subtract the bands between the mean and the edge.'}},
+   r=>{const c=r.pick(CTX_APP),k=r.int(1,3);return{text:`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. The middle ${[68,95,99.7][k-1]}% of values lie between which two values?`,fields:[{label:'Lower',ans:c.mu-k*c.sd,tol:c.sd*.01+.001},{label:'Upper',ans:c.mu+k*c.sd,tol:c.sd*.01+.001}],
+     steps:[`The middle ${[68,95,99.7][k-1]}% is within ${k} sd of the mean.`,`Lower = ${nf(c.mu)} − ${k}(${nf(c.sd)}) = <b>${nf(c.mu-k*c.sd)}</b>.`,`Upper = ${nf(c.mu)} + ${k}(${nf(c.sd)}) = <b>${nf(c.mu+k*c.sd)}</b>.`],graph:{mu:c.mu,sd:c.sd},live:v=>({mu:c.mu,sd:c.sd,regions:[[v[0],v[1]]]}),hint:'mean ± k × sd.'}}],
+  hard:[
+   r=>{const sd=r.step(2,12,.05),mean=r.step(20,80,.1),med=r2(mean+r.pick([-1,1])*r.step(.1,sd*.5,.1));const pi=3*(mean-med)/sd;
+    return{text:`A data set has mean ${f2(mean)}, median ${f2(med)} and sd ${f2(sd)}. Compute Pearson's Index of skewness.`,fields:[{label:'PI',ans:r2(pi),tol:.011}],steps:['PI = 3(mean − median) / sd.',`PI = 3(${f2(mean)} − ${f2(med)}) / ${f2(sd)} = 3(${f2(mean-med)}) / ${f2(sd)}.`,`PI = <b>${f2(pi)}</b>. ${Math.abs(pi)<=1?'Between −1 and 1: approximately normal.':'Outside −1 to 1: significantly skewed.'}`],hint:'Don\'t forget to multiply by 3.'}},
+   r=>{const sd=r.step(2,10,.05),mean=r.step(20,90,.1),kind=r.int(0,2),gap=kind===0?r.step(.1,sd*.3,.05):r.step(sd*.36,sd*.9,.05);const med=r2(kind===2?mean+gap:mean-(kind===0?r.sign()*gap:gap));const pi=3*(mean-med)/sd;
+    const ch=['Approximately normal (PI between −1 and +1)','Significantly positively skewed (PI > +1)','Significantly negatively skewed (PI < −1)'];const c=Math.abs(pi)<=1?0:pi>1?1:2;
+    return MC(`Mean = ${f2(mean)}, median = ${f2(med)}, sd = ${f2(sd)}. What can you conclude?`,ch,c,[`PI = 3(${f2(mean)} − ${f2(med)}) / ${f2(sd)} = <b>${f2(pi)}</b>.`,`${ch[c]}.`])},
+   r=>{const c=r.pick(CTX_APP);const k1=-r.int(1,3),k2=r.int(1,3);const a=c.mu+k1*c.sd,b=c.mu+k2*c.sd;const out=r2(100-band(k1,k2));
+    return{text:`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. About what percent fall <b>outside</b> ${nf(a)} to ${nf(b)}?`,fields:[{label:'Percent',ans:out,tol:.3,type:'pct'}],steps:[`Inside: bands from ${k1} to ${k2} sd = ${band(k1,k2)}%.`,`Outside = 100 − ${band(k1,k2)} = <b>${out}%</b>.`],graph:{mu:c.mu,sd:c.sd,regions:[[null,a],[b,null]]},hint:'Find the inside percent first, then subtract from 100.'}}]}},
+// ---------------------------------------------------------------- 2
+{id:'z',name:'Z-scores',unit:'Normal Distribution',
+ learn:[
+  ['Why z?','Every normal curve has its own mean and sd. To use one table for all of them, we convert values into <b>standard units</b>, called z-scores (also z statistics, standard normal deviates).'],
+  ['The formula','<div class="big">z = (X − μ) / σ</div>X = the value you have. μ = population mean. σ = population sd. z = how many sd X is from the mean.'],
+  ['Reading z','z = 0 is exactly average. z = +1.5 is 1.5 sd above. z = −2 is 2 sd below. Positive is above, negative is below.'],
+  ['Going backwards','If you know z and want X, flip it: <div class="big">X = μ + zσ</div>']],
+ play:'zscore',
+ examples:[
+  {title:'Pag-ibig loan (PPT)',text:'The average Pag-ibig salary loan is 23,000 with sd 2,500. What is the z-score of 18,500?',graph:{mu:23000,sd:2500,markers:[{x:18500,label:'18,500'}],regions:[[18500,23000]]},
+   steps:['z = (X − μ) / σ.','z = (18,500 − 23,000) / 2,500 = −4,500 / 2,500.','z = <b>−1.80</b>. The loan is 1.8 sd below average.'],answer:'z = −1.80'},
+  {title:'UST cutoff score (PPT)',text:'The test has mean 180 and sd 25. The cutoff sits at z = 0.84. What score is that?',graph:{mu:180,sd:25,markers:[{x:201,label:'201'}]},
+   steps:['X = μ + zσ.','X = 180 + 0.84(25) = 180 + 21.','X = <b>201</b>.'],answer:'201'}],
+ how:{steps:['Write down μ, σ and X from the problem.','Subtract the mean from X first.','Divide by σ. Keep the sign.','Round z to 2 decimals (that is what the table uses).','To find X from z: X = μ + zσ.'],mistakes:['Dividing before subtracting: (X − μ)/σ, not X − μ/σ.','Dropping the negative sign.','Using the sample size anywhere here. n only matters for sample means.'],formula:'z = (X − μ)/σ   ·   X = μ + zσ'},
+ gen:{
+  easy:[
+   r=>{const c=r.pick(CTX_APP),z=r.step(-2.5,2.5,.1)||1.2,x=r2(c.mu+z*c.sd);return{text:`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. Find the z-score of ${nf(x)}.`,fields:[{label:'z',ans:r2(z),tol:.011}],
+     steps:['z = (X − μ) / σ.',`z = (${nf(x)} − ${nf(c.mu)}) / ${nf(c.sd)} = ${nf(x-c.mu)} / ${nf(c.sd)}.`,`z = <b>${f2(z)}</b>.`],graph:{mu:c.mu,sd:c.sd,markers:[{x,label:nf(x)}]},live:v=>({mu:c.mu,sd:c.sd,markers:[{x,label:nf(x)},{x:c.mu+v[0]*c.sd,label:'your z',kind:'you'}]}),hint:'Subtract the mean, then divide by σ.'}},
+   r=>{const mu=r.int(5,20)*5,sd=r.int(2,10),z=r.int(-3,3)||2,x=mu+z*sd;return{text:`A quiz has mean ${mu} and sd ${sd}. You scored ${x}. What is your z-score?`,fields:[{label:'z',ans:z,tol:.011}],steps:[`z = (${x} − ${mu}) / ${sd} = ${x-mu} / ${sd} = <b>${z}</b>.`],graph:{mu,sd,markers:[{x,label:String(x)}]},live:v=>({mu,sd,markers:[{x,label:String(x)},{x:mu+v[0]*sd,label:'your z',kind:'you'}]}),hint:'(score − mean) / sd.'}}],
+  medium:[
+   r=>{const c=r.pick(CTX_APP),z=r.step(-2.8,2.8,.01)||.84,x=r2(c.mu+z*c.sd);return{text:`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. A value has z = ${f2(z)}. What is the value?`,fields:[{label:'X',ans:x,tol:c.sd*.006+.006}],
+     steps:['X = μ + zσ.',`X = ${nf(c.mu)} + (${f2(z)})(${nf(c.sd)}) = ${nf(c.mu)} + ${nf(z*c.sd)}.`,`X = <b>${nf(x)}</b>.`],graph:{mu:c.mu,sd:c.sd},live:v=>({mu:c.mu,sd:c.sd,markers:[{x:v[0],label:'your X',kind:'you'}]}),hint:'X = mean + z × sd.'}},
+   r=>{const m1=r.int(60,80),s1=r.int(5,12),m2=r.int(40,60),s2=r.int(4,10),x1=m1+r.int(1,2)*s1-r.int(0,4),x2=m2+r.int(1,2)*s2-r.int(0,4);const z1=(x1-m1)/s1,z2=(x2-m2)/s2;
+    if(Math.abs(z1-z2)<.05)return UNIT_A[1].gen.medium[0](r);const ch=['Economics','Statistics','They are equal'];const c=z1>z2?0:1;
+    return MC(`You scored ${x1} in Economics (mean ${m1}, sd ${s1}) and ${x2} in Statistics (mean ${m2}, sd ${s2}). In which subject did you do relatively better?`,ch,c,[`Economics: z = (${x1} − ${m1}) / ${s1} = ${f2(z1)}.`,`Statistics: z = (${x2} − ${m2}) / ${s2} = ${f2(z2)}.`,`The higher z is relatively better: <b>${ch[c]}</b>.`])},
+   r=>{const mu=r.int(20,100)*1000,sd=r.int(3,15)*1000,x=mu+r.int(-25,25)*100;const z=(x-mu)/sd;return{text:`Monthly salaries of fresh graduates average ₱${nf(mu)} with sd ₱${nf(sd)}. What is the z-score of ₱${nf(x)}?`,fields:[{label:'z',ans:r2(z),tol:.011}],steps:[`z = (${nf(x)} − ${nf(mu)}) / ${nf(sd)} = ${nf(x-mu)} / ${nf(sd)} = <b>${f2(z)}</b>.`],graph:{mu,sd,markers:[{x,label:nf(x)}]},live:v=>({mu,sd,markers:[{x,label:nf(x)},{x:mu+v[0]*sd,label:'your z',kind:'you'}]}),hint:'Subtract first, then divide.'}}],
+  hard:[
+   r=>{const mu=r.int(50,90),sd=r.int(4,15),z=r.pick([-2,-1.5,-1.25,-.5,.5,1.25,1.5,2,2.5]),x=r2(mu+z*sd);return{text:`A value of ${nf(x)} has a z-score of ${z} in a distribution with mean ${mu}. What is the standard deviation?`,fields:[{label:'σ',ans:sd,tol:.02}],steps:['Start from z = (X − μ)/σ and solve for σ: σ = (X − μ)/z.',`σ = (${nf(x)} − ${mu}) / ${z} = ${nf(x-mu)} / ${z} = <b>${sd}</b>.`],hint:'Rearrange: σ = (X − μ) / z.'}},
+   r=>{const sd=r.int(3,20),mu=r.int(30,120),z=r.pick([-2.2,-1.6,-.8,.6,1.4,2.4]),x=r2(mu+z*sd);return{text:`A distribution has sd ${sd}. A value of ${nf(x)} sits at z = ${z}. What is the mean?`,fields:[{label:'μ',ans:mu,tol:.02}],steps:['From X = μ + zσ, solve for μ: μ = X − zσ.',`μ = ${nf(x)} − (${z})(${sd}) = ${nf(x)} − (${nf(z*sd)}) = <b>${mu}</b>.`],graph:{mu,sd},hint:'μ = X − zσ.'}},
+   r=>{const mu=r.int(-40,40)*1000,sd=r.int(5,30)*1000,z=r.step(-3,3,.01),x=r2(mu+z*sd);return{text:`A company's monthly profit (₱, can be negative) averages ${nf(mu)} with sd ${nf(sd)}. Find X when z = ${f2(z)}.`,fields:[{label:'X',ans:x,tol:sd*.006}],steps:[`X = μ + zσ = ${nf(mu)} + (${f2(z)})(${nf(sd)}) = <b>${nf(x)}</b>.`],graph:{mu,sd},live:v=>({mu,sd,markers:[{x:v[0],label:'your X',kind:'you'}]}),hint:'Careful with the signs.'}}]}},
+// ---------------------------------------------------------------- 3
+{id:'area',name:'Areas with the z-table',unit:'Normal Distribution',
+ learn:[
+  ['Area = probability','Shaded area under the curve = the probability of landing there. The whole curve is 1. Each half is 0.5.'],
+  ['What the table gives you','Your z-table (Table A) gives the area <b>from 0 to z</b>. Find the row (first decimal, like 1.8) and the column (second decimal, like .05). Row 1.8 + column .05 = 0.4678. For a negative z, use the same number; the curve is symmetric.'],
+  ['The 5 rules','<ul><li><b>0 to z</b>: just the table, A</li><li><b>Tail</b> (beyond z, away from the middle): 0.5 − A</li><li><b>Big side</b> (past the middle): 0.5 + A</li><li><b>Between two z, same side</b>: subtract the two A\'s</li><li><b>Between two z, opposite sides</b>: add the two A\'s</li><li><b>Two separate tails</b>: find each tail, then add</li></ul>'],
+  ['Going backwards','If you are given an area and asked for z, look for the area <b>inside</b> the table, then read off its row and column. If the area includes a half (like 0.85 to the left), take away 0.5 first.']],
+ play:'area',
+ examples:[
+  {title:'Between z = 0 and z = 1.85 (PPT)',text:'Find the area between z = 0 and z = 1.85.',graph:{regions:[[0,1.85]],markers:[{x:1.85,label:'1.85'}]},steps:['Row 1.8, column .05.','A(1.85) = <b>0.4678</b> or 46.78%.'],answer:'0.4678'},
+  {title:'Right of z = 1.15 (PPT)',text:'Find the area to the right of z = 1.15.',graph:{regions:[[1.15,null]],markers:[{x:1.15,label:'1.15'}]},steps:['A(1.15) = 0.3749 (area from 0 to 1.15).','You want the tail: 0.5000 − 0.3749 = <b>0.1251</b> or 12.51%.'],answer:'0.1251'},
+  {title:'Between z = −1.85 and z = 1.15 (PPT)',text:'Find the area between z = −1.85 and z = 1.15.',graph:{regions:[[-1.85,1.15]]},steps:['Opposite sides of the middle, so add.','A(1.85) = 0.4678 and A(1.15) = 0.3749.','0.4678 + 0.3749 = <b>0.8427</b> or 84.27%.'],answer:'0.8427'},
+  {title:'Right of 1.15 and left of −1.85 (PPT)',text:'Find the area to the right of z = 1.15 and to the left of z = −1.85.',graph:{regions:[[null,-1.85],[1.15,null]]},steps:['Left tail: 0.5 − 0.4678 = 0.0322.','Right tail: 0.5 − 0.3749 = 0.1251.','Add the tails: 0.0322 + 0.1251 = <b>0.1573</b>.'],answer:'0.1573'},
+  {title:'Backwards: area 0.3962 (PPT)',text:'The area between 0 and z is 0.3962. Find z.',graph:{regions:[[0,1.26]],markers:[{x:1.26,label:'1.26'}]},steps:['Look inside the table for 0.3962.','It sits in row 1.2, column .06.','z = <b>1.26</b>. (The slide writes 1.36, but 1.36 gives 0.4131. 1.26 is right.)'],answer:'z = 1.26'}],
+ how:{steps:['Draw a bell curve and mark 0 in the middle.','Mark the z value(s) and shade what the question asks for.','Look up A(z) for each z (use the positive value).','Pick the rule: A, 0.5 − A, 0.5 + A, subtract, add.','Write it as a decimal and a percent.'],mistakes:['Reading the table value as the tail. The table is always 0 to z.','Subtracting when the z values are on opposite sides (you should add).','"Left of 1.15" is the big side: 0.5 + A, not 0.5 − A.'],formula:'tail = 0.5 − A · big side = 0.5 + A'},
+ gen:{
+  easy:[
+   r=>{const z=r.step(.1,3,.01)*r.sign();return QP(`Find the area under the standard normal curve between z = 0 and z = ${f2(z)}.`,0,1,z>0?[0,z]:[z,0],{showZ:false})},
+   r=>{const z=r.step(.1,2.9,.01);return QP(`Find the area to the right of z = ${f2(z)}.`,0,1,[z,null],{showZ:false})},
+   r=>{const z=-r.step(.1,2.9,.01);return QP(`Find the area to the left of z = ${f2(z)}.`,0,1,[null,z],{showZ:false})}],
+  medium:[
+   r=>{const z=r.step(.1,2.9,.01);return QP(`Find the area to the left of z = ${f2(z)}.`,0,1,[null,z],{showZ:false})},
+   r=>{const z=-r.step(.1,2.9,.01);return QP(`Find the area to the right of z = ${f2(z)}.`,0,1,[z,null],{showZ:false})},
+   r=>{const s=r.sign();let a=r.step(.1,1.5,.01),b=r2(a+r.step(.2,1.4,.01));const reg=s>0?[a,b]:[-b,-a];return QP(`Find the area between z = ${f2(reg[0])} and z = ${f2(reg[1])}.`,0,1,reg,{showZ:false})},
+   r=>{const a=-r.step(.1,2.5,.01),b=r.step(.1,2.5,.01);return QP(`Find the area between z = ${f2(a)} and z = ${f2(b)}.`,0,1,[a,b],{showZ:false})}],
+  hard:[
+   r=>{const a=-r.step(.5,2.5,.01),b=r.step(.5,2.5,.01);return QP(`Find the area to the right of z = ${f2(b)} and to the left of z = ${f2(a)}.`,0,1,{tails:[a,b]},{showZ:false})},
+   r=>{const z=r.step(.1,2.9,.01),ar=A(z);return{text:`The area between 0 and z is ${f4(ar)}. Find z (z is positive).`,fields:[{label:'z',ans:z,tol:.006}],steps:[`Look inside the table for ${f4(ar)}.`,`It sits in row ${(Math.floor(z*10)/10).toFixed(1)}, column .0${Math.round(z*100)%10}.`,`z = <b>${f2(z)}</b>.`],graph:{regions:[[0,z]],showZ:false},live:v=>({regions:[[0,v[0]]],markers:[{x:v[0],label:'your z',kind:'you'}],note:isFinite(v[0])?'area 0 to your z = '+f4(A(v[0])):''}),hint:'Find the area inside the table, then read its row and column.'}},
+   r=>{const z=r2(r.step(.1,2.5,.01)*r.sign()),left=r4(.5+(z>0?A(z):-A(z)));return{text:`The area to the LEFT of z is ${f4(left)}. Find z.`,fields:[{label:'z',ans:z,tol:.006}],
+     steps:[left>.5?`The area is more than 0.5, so z is positive. Take away the left half: ${f4(left)} − 0.5 = ${f4(left-.5)}.`:`The area is less than 0.5, so z is negative. The table part is 0.5 − ${f4(left)} = ${f4(.5-left)}.`,`Find ${f4(Math.abs(left-.5))} inside the table: z = ${f2(Math.abs(z))}.`,`So z = <b>${f2(z)}</b>.`],graph:{regions:[[null,z]],showZ:false},
+     live:v=>({regions:[[null,v[0]]],markers:[{x:v[0],label:'your z',kind:'you'}],note:isFinite(v[0])?'left of your z = '+f4(.5+(v[0]>0?A(v[0]):-A(v[0]))):''}),hint:'More than 0.5 to the left means z is positive. Subtract 0.5, then look inside the table.'}},
+   r=>{const z=r.step(.1,2.5,.01),right=r4(.5-A(z));return{text:`The area to the RIGHT of z is ${f4(right)}. Find z.`,fields:[{label:'z',ans:z,tol:.006}],steps:[`A small right tail means z is positive. Table part = 0.5 − ${f4(right)} = ${f4(.5-right)}.`,`Inside the table, ${f4(.5-right)} gives z = <b>${f2(z)}</b>.`],graph:{regions:[[z,null]],showZ:false},
+     live:v=>({regions:[[v[0],null]],markers:[{x:v[0],label:'your z',kind:'you'}],note:isFinite(v[0])?'right of your z = '+f4(.5-(v[0]>0?A(v[0]):-A(v[0]))):''}),hint:'0.5 − tail = table area.'}}]}},
+// ---------------------------------------------------------------- 4
+{id:'apply',name:'Real-life problems',unit:'Normal Distribution',
+ learn:[
+  ['Same tool, real units','Real problems give you a mean, an sd and a value in pesos, years or points. Convert the value to z, then use the area rules.'],
+  ['Read the wording','"Less than / below / at most" = left side. "More than / above / at least" = right side. "Between" = two edges. For continuous data, &lt; and ≤ give the same answer.'],
+  ['Finding a cutoff (backwards)','"Top 20%" means a right tail of 0.20. The area between the mean and the cutoff is 0.5 − 0.20 = 0.30. Find 0.30 inside the table to get z, then X = μ + zσ. For the "bottom" use a negative z.']],
+ examples:[
+  {title:'Pag-ibig loan (PPT)',text:'The average Pag-ibig salary loan is 23,000 with sd 2,500. Find the probability that an employee owes less than 18,500.',graph:{mu:23000,sd:2500,regions:[[null,18500]]},steps:solveProb(23000,2500,[null,18500]).steps,answer:'0.0359'},
+  {title:'Bank managers (PPT)',text:'The average age of bank managers is 40 with sd 5. Find the probability that a manager is between 35 and 46 years old.',graph:{mu:40,sd:5,regions:[[35,46]]},steps:solveProb(40,5,[35,46]).steps,answer:'0.7262'},
+  {title:'UST Master\'s cutoff (PPT)',text:'To qualify, candidates must score in the top 20%. Mean 180, sd 25. Find the lowest possible score to qualify.',graph:{mu:180,sd:25,regions:[[201,null]],markers:[{x:201,label:'201'}]},steps:['Top 20% is a right tail of 0.2000.','Area between the mean and the cutoff: 0.5000 − 0.2000 = 0.3000.','Inside the table, 0.3000 is closest to 0.2995 at z = 0.84.','X = μ + zσ = 180 + 0.84(25) = 180 + 21 = <b>201</b>.'],answer:'201'}],
+ how:{steps:['Write μ, σ, and the value(s) X.','Draw the curve with μ in the middle. Shade the region the words describe.','Convert each X to z = (X − μ)/σ, round to 2 decimals.','Look up A(z), apply the area rule.','For cutoffs: tail → 0.5 − tail → find inside the table → z → X = μ + zσ.'],mistakes:['Using the tail (0.20) to search the table. Search 0.5 − 0.20 = 0.30.','Forgetting z is negative for a "bottom" cutoff.','Mixing up "below" and "above".'],formula:'z = (X − μ)/σ · X = μ + zσ'},
+ gen:{
+  easy:[
+   r=>{const c=r.pick(CTX_APP),z=r.step(-2.5,-.2,.01),x=r2(c.mu+z*c.sd);const xv=Math.round(x/c.st)*c.st;return QP(`The ${c.n} is normal with mean ${nf(c.mu)} and sd ${nf(c.sd)}. Find the probability that a value is less than ${nf(xv)}.`,c.mu,c.sd,[null,xv])},
+   r=>{const c=r.pick(CTX_APP),z=r.step(.2,2.5,.01),x=Math.round((c.mu+z*c.sd)/c.st)*c.st;return QP(`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. Find the probability that a value is more than ${nf(r2(x))}.`,c.mu,c.sd,[r2(x),null])}],
+  medium:[
+   r=>{const c=r.pick(CTX_APP),a=Math.round((c.mu-r.step(.2,2.2,.01)*c.sd)/c.st)*c.st,b=Math.round((c.mu+r.step(.2,2.2,.01)*c.sd)/c.st)*c.st;return QP(`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. Find the probability that a value is between ${nf(r2(a))} and ${nf(r2(b))}.`,c.mu,c.sd,[r2(a),r2(b)])},
+   r=>{const c=r.pick(CTX_APP),s=r.sign(),z1=r.step(.2,1.2,.01),z2=r2(z1+r.step(.3,1.3,.01));let a=Math.round((c.mu+s*z1*c.sd)/c.st)*c.st,b=Math.round((c.mu+s*z2*c.sd)/c.st)*c.st;if(a>b)[a,b]=[b,a];return QP(`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. Find the probability that a value is between ${nf(r2(a))} and ${nf(r2(b))}.`,c.mu,c.sd,[r2(a),r2(b)])},
+   r=>{const c=r.pick(CTX_APP),z=r.step(-2,-.2,.01),x=r2(Math.round((c.mu+z*c.sd)/c.st)*c.st);return QP(`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. Find the probability that a value is at least ${nf(x)}.`,c.mu,c.sd,[x,null])}],
+  hard:[
+   r=>{const c=r.pick(CTX_APP),p=r.pick([.05,.1,.15,.2,.25,.3]),top=r.n()<.5,z=invA(.5-p),x=r2(c.mu+(top?z:-z)*c.sd);
+    return{text:`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. Find the cutoff for the ${top?'top':'bottom'} ${p*100}%.`,fields:[{label:'Cutoff X',ans:x,tol:c.sd*.012+.006}],
+     steps:[`${top?'Top':'Bottom'} ${p*100}% is a ${top?'right':'left'} tail of ${f4(p)}.`,`Area between the mean and the cutoff: 0.5000 − ${f4(p)} = ${f4(.5-p)}.`,`Inside the table, the closest area is ${f4(A(z))} at z = ${f2(z)}. ${top?'':'It is the bottom, so z = −'+f2(z)+'.'}`,`X = μ + zσ = ${nf(c.mu)} + (${top?'':'−'}${f2(z)})(${nf(c.sd)}) = <b>${nf(x)}</b>.`],
+     graph:{mu:c.mu,sd:c.sd},live:v=>({mu:c.mu,sd:c.sd,regions:[top?[v[0],null]:[null,v[0]]],markers:[{x:v[0],label:'your cutoff',kind:'you'}],note:isFinite(v[0])?(top?'area above = ':'area below = ')+f4(top?solveProb(c.mu,c.sd,[v[0],null]).ans:solveProb(c.mu,c.sd,[null,v[0]]).ans):''}),hint:'Search the table for 0.5 − tail, not the tail itself.'}},
+   r=>{const c=r.pick(CTX_APP),a=r2(Math.round((c.mu-r.step(.5,2,.01)*c.sd)/c.st)*c.st),b=r2(Math.round((c.mu+r.step(.5,2,.01)*c.sd)/c.st)*c.st);return QP(`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. Find the probability that a value is below ${nf(a)} or above ${nf(b)}.`,c.mu,c.sd,{tails:[a,b]},{hint:'Two separate tails: find each one (0.5 − A), then add.'})},
+   r=>{const c=r.pick(CTX_APP),N=r.pick([200,500,1000,1500]),z=r.step(.3,2,.01),x=r2(Math.round((c.mu+z*c.sd)/c.st)*c.st);const s=solveProb(c.mu,c.sd,[x,null]);const cnt=Math.round(N*s.ans);
+    return{text:`The ${c.n} has mean ${nf(c.mu)} and sd ${nf(c.sd)}. Out of ${N} cases, about how many are above ${nf(x)}?`,fields:[{label:'How many',ans:cnt,tol:Math.max(1,N*.003)}],steps:s.steps.slice(0,-1).concat([`Probability = ${f4(s.ans)}.`,`Expected count = ${N} × ${f4(s.ans)} = <b>${cnt}</b>.`]),graph:{mu:c.mu,sd:c.sd,regions:[[x,null]]},hint:'Find the probability first, then multiply by the total.'}}]}},
+// ---------------------------------------------------------------- 5
+{id:'clt',name:'Sample means (CLT)',unit:'Normal Distribution',
+ learn:[
+  ['From one person to a group','So far, X was one person. Now we take a <b>sample</b> of n people and look at their average, x̄. The <b>sampling distribution of the sample mean</b> is the distribution of all possible x̄\'s from samples of size n.'],
+  ['Central Limit Theorem','The bigger the sample, the more the sampling distribution of x̄ looks normal. Its center is still μ, but it is <b>narrower</b>: averages bounce around less than single values.'],
+  ['The formulas','<div class="big">σx̄ = σ / √n<br>z = (x̄ − μ) / (σ / √n)</div>σx̄ is the <b>standard error</b>. Everything else (table, area rules) stays the same.'],
+  ['Sampling error','The difference between a sample statistic and the population parameter. It happens because a sample is never a perfect copy of the population.']],
+ play:'clt',
+ examples:[
+  {title:'New car cost (PPT)',text:'The average cost per household of owning a new car is 5,000, sd 1,230. For a sample of 40 households, find P(x̄ > 5,350).',graph:{mu:5000,sd:1230/Math.sqrt(40),regions:[[5350,null]]},steps:['σx̄ = 1,230 / √40 = 194.48.'].concat(solveProb(5000,1230/Math.sqrt(40),[5350,null]).steps),answer:'0.0359'},
+  {title:'LTO car ages (PPT)',text:'Average age of a registered car is 120 months, sd 20. For 35 cars, find P(115 < x̄ < 129).',graph:{mu:120,sd:20/Math.sqrt(35),regions:[[115,129]]},steps:['σx̄ = 20 / √35 = 3.3806.'].concat(solveProb(120,20/Math.sqrt(35),[115,129]).steps),answer:'0.9267'},
+  {title:'Fresh milk (PPT)',text:'A person drinks 18 liters a month on average, sd 4.5. (a) P(one person drinks more than 16)? (b) P(mean of 32 people is more than 16)?',graph:{mu:18,sd:4.5/Math.sqrt(32),regions:[[16,null]]},steps:['(a) One person: z = (16 − 18)/4.5 = −0.44. Big side: 0.5 + 0.1700 = <b>0.67</b>.','(b) Sample of 32: σx̄ = 4.5/√32 = 0.7955. z = (16 − 18)/0.7955 = −2.51.','Big side: 0.5 + 0.4940 = <b>0.9940</b>.','The sample answer is closer to 1 because averages stay near 18.'],answer:'(a) 0.67 (b) 0.9940'}],
+ how:{steps:['Check the question: is it about ONE value or the MEAN of a sample? Sample means use σ/√n.','Compute the standard error σ/√n.','z = (x̄ − μ) / (σ/√n), round to 2 decimals.','Use the area rules as usual.'],mistakes:['Forgetting to divide by √n.','Dividing by n instead of √n.','Using σ/√n for a question about a single person.'],formula:'σx̄ = σ/√n · z = (x̄ − μ)/(σ/√n)'},
+ gen:{
+  easy:[
+   r=>{const c=r.pick(CTX_CLT),n=r.pick(c.ns),se=c.sd/Math.sqrt(n);return{text:`The ${c.n} has σ = ${nf(c.sd)}. For samples of n = ${n}, what is the standard error of the mean?`,fields:[{label:'σx̄',ans:r4(se),tol:Math.max(.006,se*.003)}],steps:['σx̄ = σ / √n.',`σx̄ = ${nf(c.sd)} / √${n} = ${nf(c.sd)} / ${nf(Math.sqrt(n),4)} = <b>${nf(se,4)}</b>.`],graph:{mu:c.mu,sd:se},hint:'Divide σ by the square root of n.'}},
+   r=>{const ch=['Gets smaller','Gets bigger','Stays the same','Becomes zero right away'];return MC(`As the sample size n gets bigger, what happens to the spread (standard error) of the sample mean?`,ch,0,['σx̄ = σ/√n. A bigger n means a bigger √n, so the spread <b>gets smaller</b>.'])},
+   r=>{const ch=['μ, the population mean','x̄ of one sample only','The median of the sample','σ/√n'];return MC('The sampling distribution of x̄ is centered at…',ch,0,['The average of all possible sample means equals the population mean, <b>μ</b>.'])}],
+  medium:[
+   r=>{const c=r.pick(CTX_CLT),n=r.pick(c.ns),se=c.sd/Math.sqrt(n),z=r.step(.3,2.6,.01),x=r2(c.mu+z*se);const xv=c.mu>=100?Math.round(x):x;return QP(`The ${c.n} has μ = ${nf(c.mu)} and σ = ${nf(c.sd)}. A sample of ${n} is taken. Find P(x̄ > ${nf(xv)}).`,c.mu,se,[xv,null],{pre:[`σx̄ = ${nf(c.sd)} / √${n} = ${nf(se,4)}.`],hint:'Use σ/√n in the z formula.'})},
+   r=>{const c=r.pick(CTX_CLT),n=r.pick(c.ns),se=c.sd/Math.sqrt(n),z=-r.step(.3,2.6,.01),x=r2(c.mu+z*se);const xv=c.mu>=100?Math.round(x):x;return QP(`The ${c.n} has μ = ${nf(c.mu)} and σ = ${nf(c.sd)}. For a sample of ${n}, find P(x̄ < ${nf(xv)}).`,c.mu,se,[null,xv],{pre:[`σx̄ = ${nf(c.sd)} / √${n} = ${nf(se,4)}.`],hint:'Use σ/√n in the z formula.'})}],
+  hard:[
+   r=>{const c=r.pick(CTX_CLT),n=r.pick(c.ns),se=c.sd/Math.sqrt(n);let a=r2(c.mu-r.step(.4,2.2,.01)*se),b=r2(c.mu+r.step(.4,2.8,.01)*se);if(c.mu>=100){a=Math.round(a);b=Math.round(b)}return QP(`The ${c.n} has μ = ${nf(c.mu)} and σ = ${nf(c.sd)}. For ${n} randomly selected, find the probability that the sample mean is between ${nf(a)} and ${nf(b)}.`,c.mu,se,[a,b],{pre:[`σx̄ = ${nf(c.sd)} / √${n} = ${nf(se,4)}.`]})},
+   r=>{const c=r.pick(CTX_CLT),n=r.pick(c.ns),se=c.sd/Math.sqrt(n),x=r2(c.mu-r.step(.2,.6,.01)*c.sd);const xv=c.mu>=100?Math.round(x):x;const s1=solveProb(c.mu,c.sd,[xv,null]),s2=solveProb(c.mu,se,[xv,null]);
+    return{text:`The ${c.n} has μ = ${nf(c.mu)} and σ = ${nf(c.sd)}. (a) Find the probability that ONE randomly selected value is more than ${nf(xv)}. (b) Find the probability that the MEAN of a sample of ${n} is more than ${nf(xv)}.`,
+     fields:[{label:'(a) one value',ans:s1.ans,tol:.0025,type:'prob'},{label:'(b) sample mean',ans:s2.ans,tol:.0025,type:'prob'}],
+     steps:['(a) One value: use σ.'].concat(s1.steps,[`(b) Sample mean: σx̄ = ${nf(c.sd)}/√${n} = ${nf(se,4)}.`],s2.steps),graph:{mu:c.mu,sd:se,regions:[[xv,null]]},hint:'(a) uses σ. (b) uses σ/√n. Same edge, different spread.'}},
+   r=>{const c=r.pick(CTX_CLT),n=r.pick(c.ns),se=c.sd/Math.sqrt(n);const z=r.step(1,2.4,.01);const a=r2(c.mu-z*se),b=r2(c.mu+z*se);return QP(`The ${c.n} has μ = ${nf(c.mu)} and σ = ${nf(c.sd)}. For a sample of ${n}, what is the probability that x̄ is within ${nf(r2(z*se))} of the population mean?`,c.mu,se,[a,b],{pre:[`"Within ${nf(r2(z*se))} of the mean" means between ${nf(a)} and ${nf(b)}.`,`σx̄ = ${nf(c.sd)}/√${n} = ${nf(se,4)}.`]})}]}},
+// ---------------------------------------------------------------- 6
+{id:'binom',name:'Normal approx. to binomial',unit:'Normal Distribution',
+ learn:[
+  ['When counts become a curve','A binomial counts successes in n tries (how many of 250 drivers have a license). As n grows, its bars look like a normal curve. So we can use the z-table instead of adding hundreds of binomial terms.'],
+  ['Step 1: check you are allowed','<div class="big">np ≥ 5 and nq ≥ 5</div>p = chance of success, q = 1 − p. Both products must be <b>at least</b> 5 (5 or more).'],
+  ['Step 2: mean and sd','<div class="big">μ = np &nbsp;&nbsp; σ = √(npq)</div>'],
+  ['Step 3: continuity correction (±0.5)','Each whole number is a bar from a − 0.5 to a + 0.5. Wording with <b>"or" / "at least" / "at most"</b> includes the number, so stretch out to cover its bar. Wording with <b>"than" / "fewer" / "more"</b> excludes it.<table class="tbl" style="margin-top:8px"><tr><th>Binomial</th><th>Normal</th></tr><tr><td>P(X = a)</td><td>P(a − 0.5 &lt; X &lt; a + 0.5)</td></tr><tr><td>P(X ≥ a)</td><td>P(X &gt; a − 0.5)</td></tr><tr><td>P(X &gt; a)</td><td>P(X &gt; a + 0.5)</td></tr><tr><td>P(X ≤ a)</td><td>P(X &lt; a + 0.5)</td></tr><tr><td>P(X &lt; a)</td><td>P(X &lt; a − 0.5)</td></tr></table>'],
+  ['Step 4: solve like before','Convert the corrected edge(s) to z and use the area rules.']],
+ play:'binom',
+ examples:[
+  {title:'LTO drivers (PPT)',text:'14% of Filipino drivers have a professional license. If 250 drivers are selected, find the probability that exactly 30 have one.',graph:{mu:35,sd:Math.sqrt(250*.14*.86),regions:[[29.5,30.5]],bars:{on:[30,30]}},steps:['np = 250(0.14) = 35 ≥ 5 and nq = 250(0.86) = 215 ≥ 5. Normal can be used.','μ = 35, σ = √(250 × 0.14 × 0.86) = √30.1 = 5.49.','Exactly 30 → P(29.5 &lt; X &lt; 30.5).'].concat(solveProb(35,Math.sqrt(30.1),[29.5,30.5]).steps),answer:'0.0474'},
+  {title:'Rotary Club (PPT)',text:'8% of Rotarians are single. If 300 are selected, find the probability that 20 or more are single.',graph:{mu:24,sd:Math.sqrt(300*.08*.92),regions:[[19.5,null]],bars:{on:[20,60]}},steps:['np = 24 ≥ 5, nq = 276 ≥ 5. OK.','μ = 24, σ = √(300 × 0.08 × 0.92) = √22.08 = 4.70.','"20 or more" includes 20, so start at 19.5: P(X &gt; 19.5).'].concat(solveProb(24,Math.sqrt(22.08),[19.5,null]).steps,['(The slide shows 0.8815. 0.3315 + 0.5 = 0.8315 is the correct sum.)']),answer:'0.8315'},
+  {title:'EEE handkerchiefs (PPT)',text:'EEE has a 20% market share. In a survey of 3,000 buyers, find the probability that 660 or fewer prefer EEE.',graph:{mu:600,sd:Math.sqrt(480),regions:[[null,660.5]]},steps:['np = 600, nq = 2,400. Both ≥ 5.','μ = 600, σ = √(3000 × 0.2 × 0.8) = √480 = 21.91.','"660 or fewer" includes 660: P(X &lt; 660.5).'].concat(solveProb(600,Math.sqrt(480),[null,660.5]).steps),answer:'0.9971'}],
+ how:{steps:['Write p, q = 1 − p, and n.','Check np ≥ 5 and nq ≥ 5.','μ = np, σ = √(npq).','Rewrite with ±0.5 using the table.','Convert to z and use the area rules.'],mistakes:['Skipping the 0.5 correction.','Going the wrong way: "20 or more" starts at 19.5, not 20.5.','Using p instead of npq inside the square root.'],formula:'μ = np · σ = √(npq) · "or" includes, "than" excludes'},
+ gen:{
+  easy:[
+   r=>{const c=r.pick(CTX_BIN),p=r.pick(c.p),n=r.pick([100,150,200,250,300,400,500]);const mu=n*p,sd=Math.sqrt(n*p*(1-p));return{text:`${Math.round(p*100)}% of ${c.w}. For n = ${n}, find μ and σ for the normal approximation.`,fields:[{label:'μ',ans:r2(mu),tol:.02},{label:'σ',ans:r2(sd),tol:.02}],steps:[`μ = np = ${n}(${p}) = <b>${nf(mu)}</b>.`,`σ = √(npq) = √(${n} × ${p} × ${r2(1-p)}) = √${nf(n*p*(1-p))} = <b>${f2(sd)}</b>.`],graph:{mu,sd},hint:'μ = np, σ = √(np(1 − p)).'}},
+   r=>{const p=r.pick([.02,.03,.05,.1,.2,.5,.9,.97]),n=r.pick([40,60,80,100,150]);const np=r2(n*p),nq=r2(n*(1-p)),ok=np>=5&&nq>=5;const ch=['Yes, both np and nq are at least 5','No, np or nq is less than 5'];
+    return MC(`A binomial has n = ${n} and p = ${p}. Can the normal approximation be used?`,ch,ok?0:1,[`np = ${n}(${p}) = ${np}. nq = ${n}(${r2(1-p)}) = ${nq}.`,ok?'Both are 5 or more, so <b>yes</b>.':'At least one is below 5, so <b>no</b>.'])},
+   r=>{const a=r.int(10,60),form=r.int(0,4);const F=[['P(X ≥ '+a+')',a-.5,'greater than'],['P(X > '+a+')',a+.5,'greater than'],['P(X ≤ '+a+')',a+.5,'less than'],['P(X < '+a+')',a-.5,'less than'],['P(X ≥ '+a+')',a-.5,'greater than']][form];
+    return{text:`With the continuity correction, ${F[0]} becomes P(X ${F[2]==='greater than'?'>':'<'} ?). Fill in the number.`,fields:[{label:'Corrected edge',ans:F[1],tol:.001}],steps:[form===0||form===4?`"≥ ${a}" includes ${a}, so stretch down to the start of its bar: ${a} − 0.5 = <b>${F[1]}</b>.`:form===1?`"> ${a}" excludes ${a}, so start after its bar: ${a} + 0.5 = <b>${F[1]}</b>.`:form===2?`"≤ ${a}" includes ${a}, so go to the end of its bar: ${a} + 0.5 = <b>${F[1]}</b>.`:`"< ${a}" excludes ${a}, so stop before its bar: ${a} − 0.5 = <b>${F[1]}</b>.`],hint:'Includes the number: stretch outward. Excludes it: pull inward.'}}],
+  medium:[
+   r=>{const c=r.pick(CTX_BIN),p=r.pick(c.p),n=r.pick([120,200,250,300]),a=Math.round(n*p+r.int(-6,6));const W=r.int(0,3);const words=[`${a} or more`,`more than ${a}`,`${a} or fewer`,`fewer than ${a}`][W],edge=[a-.5,a+.5,a+.5,a-.5][W],sym=['>','>','<','<'][W];
+    return{text:`${Math.round(p*100)}% of ${c.w}. In a sample of ${n}, we want the probability of "${words}". After the continuity correction, what is the edge of the normal region?`,fields:[{label:'Edge',ans:edge,tol:.001}],steps:[`"${words}" ${W%2===0?'includes':'excludes'} ${a}.`,`So it becomes P(X ${sym} <b>${edge}</b>).`],graph:{mu:n*p,sd:Math.sqrt(n*p*(1-p))},live:v=>({mu:n*p,sd:Math.sqrt(n*p*(1-p)),regions:[sym==='>'?[v[0],null]:[null,v[0]]],bars:Math.sqrt(n*p*(1-p))<12?{on:sym==='>'?[W===0?a:a+1,999]:[-999,W===2?a:a-1]}:null,markers:[{x:v[0],label:'your edge',kind:'you'}]}),hint:'"or" includes the number, "than" excludes it.'}},
+   r=>{const a=r.int(15,80);return{text:`For the normal approximation, P(X = ${a}) becomes P(? < X < ?). Fill in both edges.`,fields:[{label:'Lower',ans:a-.5,tol:.001},{label:'Upper',ans:a+.5,tol:.001}],steps:[`The bar for ${a} runs from ${a} − 0.5 to ${a} + 0.5.`,`P(<b>${a-.5}</b> &lt; X &lt; <b>${a+.5}</b>).`],hint:'One whole number = one bar, width 1.'}},
+   r=>{const c=r.pick(CTX_BIN),p=r.pick(c.p),n=r.pick([200,250,300,400]);const mu=n*p,sd=Math.sqrt(n*p*(1-p)),a=Math.round(mu+r.int(2,8));return{...QP(`${Math.round(p*100)}% of ${c.w}. If ${n} are selected, find the probability that ${a} or fewer have the trait.`,mu,sd,[null,a+.5],{pre:[`np = ${nf(mu)} and nq = ${nf(n-mu)}, both ≥ 5.`,`μ = ${nf(mu)}, σ = √(${n} × ${p} × ${r2(1-p)}) = ${f2(sd)}.`,`"${a} or fewer" includes ${a}: P(X &lt; ${a+.5}).`],hint:'μ = np, σ = √(npq), then a + 0.5.'})}}],
+  hard:[
+   r=>{const c=r.pick(CTX_BIN),p=r.pick(c.p),n=r.pick([150,250,300,400]);const mu=n*p,sd=Math.sqrt(n*p*(1-p)),a=Math.round(mu+r.int(-5,5));const q=QP(`${Math.round(p*100)}% of ${c.w}. If ${n} are selected, find the probability that exactly ${a} have the trait.`,mu,sd,[a-.5,a+.5],{pre:[`np = ${nf(mu)}, nq = ${nf(n-mu)}: both ≥ 5.`,`μ = ${nf(mu)}, σ = ${f2(sd)}.`,`Exactly ${a} → P(${a-.5} &lt; X &lt; ${a+.5}).`],hint:'Exactly a → a − 0.5 to a + 0.5.'});q.graph.bars=sd<12?{on:[a,a]}:null;return q},
+   r=>{const c=r.pick(CTX_BIN),p=r.pick(c.p),n=r.pick([200,300,500,1000]);const mu=n*p,sd=Math.sqrt(n*p*(1-p)),a=Math.round(mu-r.int(1,Math.max(2,Math.round(2*sd))));const W=r.int(0,1);const words=W?`more than ${a}`:`at least ${a}`,edge=W?a+.5:a-.5;
+    const q=QP(`${Math.round(p*100)}% of ${c.w}. In a random sample of ${n}, find the probability that ${words} have the trait.`,mu,sd,[edge,null],{pre:[`np = ${nf(mu)}, nq = ${nf(n-mu)}: both ≥ 5.`,`μ = ${nf(mu)}, σ = √(${n} × ${p} × ${r2(1-p)}) = ${f2(sd)}.`,`"${words}" → P(X &gt; ${edge}).`]});return q},
+   r=>{const c=r.pick(CTX_BIN),p=r.pick(c.p),n=r.pick([200,250,400,500]);const mu=n*p,sd=Math.sqrt(n*p*(1-p)),a=Math.round(mu-r.int(1,Math.round(1.5*sd)+1)),b=Math.round(mu+r.int(1,Math.round(1.5*sd)+1));
+    return QP(`${Math.round(p*100)}% of ${c.w}. Out of ${n} selected, find the probability that between ${a} and ${b} (inclusive) have the trait.`,mu,sd,[a-.5,b+.5],{pre:[`np = ${nf(mu)}, nq = ${nf(n-mu)}: both ≥ 5.`,`μ = ${nf(mu)}, σ = ${f2(sd)}.`,`Inclusive on both ends → P(${a-.5} &lt; X &lt; ${b+.5}).`],hint:'Inclusive: stretch both ends out by 0.5.'})},
+   r=>{const n=r.pick([3000,2000,1500]),p=r.pick([.2,.25,.3]),mu=n*p,sd=Math.sqrt(n*p*(1-p)),a=Math.round(mu+r.int(1,Math.round(2.6*sd)));
+    return QP(`A company believes its brand has a ${p*100}% market share. In a survey of ${nf(n)} buyers, find the probability that ${nf(a)} or fewer prefer the brand.`,mu,sd,[null,a+.5],{pre:[`np = ${nf(mu)}, nq = ${nf(n-mu)}: both ≥ 5.`,`μ = ${nf(mu)}, σ = √(${nf(n)} × ${p} × ${r2(1-p)}) = ${f2(sd)}.`,`"${nf(a)} or fewer" → P(X &lt; ${a+.5}).`]})}]}}
+];
+
+// ===== Unit 2: Confidence Intervals and Sample Size (from the class PPT) =====
+const CTX_CI=[
+ {n:'age of flat TVs in households',u:'years',mu:[3,8],sd:[.5,1.5],d:2},
+ {n:'monthly spending on clothing of young professionals',u:'pesos',mu:[400,900],sd:[60,150],d:0},
+ {n:'monthly income of executive secretaries in Makati (thousand pesos)',u:'thousand',mu:[15,25],sd:[3,6],d:2},
+ {n:'hours students spend on homework per week',u:'hours',mu:[8,20],sd:[2,6],d:1},
+ {n:'distance students travel to school',u:'km',mu:[5,15],sd:[1.5,4],d:1},
+ {n:'daily screen time of UST students',u:'hours',mu:[5,10],sd:[1,3],d:2},
+ {n:'weekly grocery spending of families in Sampaloc',u:'pesos',mu:[1800,4000],sd:[300,800],d:0}];
+const CTX_P=['engineering applicants who are women','voters in a district who favor candidate B','college professors who own a laptop','students who surf the internet daily','jeepney riders who prefer a modern jeep','households that use e-wallets'];
+const ciCtx=r=>{const c=r.pick(CTX_CI),p=10**c.d;const mu=Math.round((c.mu[0]+r.n()*(c.mu[1]-c.mu[0]))*p)/p,sd=Math.round((c.sd[0]+r.n()*(c.sd[1]-c.sd[0]))*100)/100;return{...c,mu,sd}};
+const ciTol=E=>Math.max(.011,Math.abs(E)*.006);
+const ciGraph=(xb,se)=>({mu:xb,sd:se,markers:[{x:xb,label:'x̄ = '+nf(xb)}],showZ:false});
+const ciLive=(xb,se)=>v=>({mu:xb,sd:se,regions:[[v[0],v[1]]],ci:[v[0],v[1]],markers:[{x:xb,label:'x̄'}],showZ:false});
+function zCI(xb,sd,n,cl,known){const z=ZC[cl],se=sd/Math.sqrt(n),E=z*se;return{z,se,E,lo:xb-E,hi:xb+E,steps:[
+ `${known?'σ is known':'n = '+n+' ≥ 30'}, so use z. For ${cl}% confidence, z<sub>α/2</sub> = ${z}.`,
+ `Standard error: ${known?'σ':'s'}/√n = ${nf(sd)} / √${n} = ${nf(se,4)}.`,
+ `Margin of error: E = ${z} × ${nf(se,4)} = <b>${nf(E,4)}</b>.`,
+ `Lower limit = ${nf(xb)} − ${nf(E,4)} = <b>${f2(xb-E)}</b>. Upper limit = ${nf(xb)} + ${nf(E,4)} = <b>${f2(xb+E)}</b>.`,
+ `We are ${cl}% confident the true mean is between ${f2(xb-E)} and ${f2(xb+E)}.`]}}
+function tCI(xb,s,n,cl){const df=n-1,t=tval(df,cl),se=s/Math.sqrt(n),E=t*se;return{t,df,se,E,lo:xb-E,hi:xb+E,steps:[
+ `σ is unknown and n = ${n} < 30, so use t. df = n − 1 = ${df}.`,
+ `From the t-table, df ${df} at ${cl}%: t = ${t.toFixed(3)}.`,
+ `Standard error: s/√n = ${nf(s,4)} / √${n} = ${nf(se,4)}.`,
+ `E = ${t.toFixed(3)} × ${nf(se,4)} = <b>${nf(E,4)}</b>.`,
+ `Interval: ${nf(xb,4)} ± ${nf(E,4)} → <b>${f2(xb-E)}</b> to <b>${f2(xb+E)}</b>.`]}}
+function pCI(X,n,cl){const p=X/n,q=1-p,z=ZC[cl],se=Math.sqrt(p*q/n),E=z*se;return{p,q,z,se,E,lo:p-E,hi:p+E,steps:[
+ `p̂ = X/n = ${X}/${n} = ${nf(p,4)}. q̂ = 1 − p̂ = ${nf(q,4)}.`,
+ `z for ${cl}% = ${z}.`,
+ `√(p̂q̂/n) = √(${nf(p,4)} × ${nf(q,4)} / ${n}) = ${nf(se,5)}.`,
+ `E = ${z} × ${nf(se,5)} = <b>${nf(E,4)}</b>.`,
+ `Interval: ${nf(p,4)} ± ${nf(E,4)} → <b>${f4(p-E)}</b> to <b>${f4(p+E)}</b>.`]}}
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const sdev=a=>{const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1))};
+
+const UNIT_B=[
+// ---------------------------------------------------------------- 7
+{id:'ciz',name:'CI for the mean (z)',unit:'Confidence Intervals',
+ learn:[
+  ['Estimation','Estimation means guessing a population value (a <b>parameter</b>, like μ) from a sample. The sample value we use (like x̄) is the <b>estimator</b>; the number we get is the <b>estimate</b>.'],
+  ['Point vs interval','A <b>point estimate</b> is one number: x̄ is the best point estimate of μ. An <b>interval estimate</b> is a range that probably contains μ. A <b>confidence interval</b> is an interval built at a chosen confidence level, like 95%.'],
+  ['A good estimator is…','<ul><li><b>Unbiased</b>: its expected value equals the parameter</li><li><b>Consistent</b>: it gets closer to the parameter as n grows</li><li><b>Relatively efficient</b>: of two unbiased estimators, the one with the smaller variance</li></ul>'],
+  ['Confidence level','Written (1 − α)100%. For 95%, α = 0.05 and α/2 = 0.025. The z values you need:<table class="tbl" style="margin-top:8px"><tr><th>Level</th><th>α</th><th>α/2</th><th>z<sub>α/2</sub></th></tr><tr><td>90%</td><td>0.10</td><td>0.05</td><td>1.645</td></tr><tr><td>95%</td><td>0.05</td><td>0.025</td><td>1.960</td></tr><tr><td>99%</td><td>0.01</td><td>0.005</td><td>2.576</td></tr></table>'],
+  ['The formula','<div class="big">x̄ − z<sub>α/2</sub>(σ/√n) &lt; μ &lt; x̄ + z<sub>α/2</sub>(σ/√n)</div>E = z<sub>α/2</sub>(σ/√n) is the <b>maximum error of estimate</b> (margin of error). The left end is the LCL (lower confidence limit) and the right end is the UCL. Use z when σ is known, or when n ≥ 30 (then use s in place of σ).']],
+ play:'ci',
+ examples:[
+  {title:'Flat TV age (PPT)',text:'A survey of 30 households found the mean age of a flat TV is 4 years. σ = 0.75 year. Find the best point estimate and the 99% confidence interval.',graph:{...ciGraph(4,.75/Math.sqrt(30)),ci:[3.65,4.35],regions:[[3.65,4.35]]},steps:['Best point estimate of μ: x̄ = <b>4 years</b>.'].concat(zCI(4,.75,30,99,true).steps),answer:'4 years; 3.65 < μ < 4.35'},
+  {title:'Clothing spending (PPT)',text:'A sample of 40 young professionals spend a mean of 500.00 on clothing a month, sd 80.00. Find the best point estimate and the 95% confidence interval.',graph:{...ciGraph(500,80/Math.sqrt(40)),ci:[475.21,524.79],regions:[[475.21,524.79]]},steps:['Point estimate: x̄ = <b>500.00</b>.'].concat(zCI(500,80,40,95,false).steps),answer:'475.21 < μ < 524.79'},
+  {title:'Makati secretaries (PPT)',text:'Find the 90% CI for the incomes of executive secretaries (thousand pesos) from 30 values: 17, 14, 20, 18.2, 14.5, 15, 25.3, 20.1, 21.9, 22.6, 23, 17.4, 19, 16, 13, 16, 30.2, 19, 16.3, 14.6, 13, 17, 25, 15.9, 14, 22.7, 18.3, 17, 15.8, 18.2.',graph:{...ciGraph(18.33,4.069/Math.sqrt(30)),ci:[17.11,19.56],regions:[[17.11,19.56]]},steps:['With a calculator: Σx = 550, so x̄ = 550/30 = 18.33. s = 4.07.'].concat(zCI(18.3333,4.069,30,90,false).steps),answer:'17.11 < μ < 19.56'}],
+ how:{steps:['Write x̄, σ (or s), n and the confidence level.','Check: σ known or n ≥ 30 → z. (Otherwise go to the t lesson.)','Get z<sub>α/2</sub>: 1.645, 1.960 or 2.576.','Compute σ/√n, then E = z × σ/√n.','LCL = x̄ − E, UCL = x̄ + E. Write it as LCL &lt; μ &lt; UCL.'],mistakes:['Using 1.645 for 95%. 95% is 1.960.','Forgetting √n.','Rounding E too early. Keep 4 decimals until the end.'],formula:'x̄ ± z(σ/√n)'},
+ gen:{
+  easy:[
+   r=>{const cl=r.pick([90,95,99]);return{text:`What is z<sub>α/2</sub> for a ${cl}% confidence interval?`,fields:[{label:'z',ans:ZC[cl],tol:.006}],steps:[`${cl}%: α = ${r2(1-cl/100)}, α/2 = ${r4((1-cl/100)/2)}.`,`The area between 0 and z is ${cl/200}. From the table, z = <b>${ZC[cl]}</b>.`],graph:{regions:[[-ZC[cl],ZC[cl]]]},live:v=>({regions:[[-v[0],v[0]]],markers:[{x:v[0],label:'your z',kind:'you'}],note:isFinite(v[0])?'middle area = '+f4(2*A(v[0])):''}),hint:'The middle area is the confidence level. Half of it is the table area.'}},
+   r=>{const cl=r.pick([90,95,98,99]);const a=r2(1-cl/100);return{text:`For a ${cl}% confidence level, find α and α/2.`,fields:[{label:'α',ans:a,tol:.0001},{label:'α/2',ans:r4(a/2),tol:.0001}],steps:[`Confidence = 1 − α = ${cl/100}, so α = <b>${a}</b>.`,`α/2 = <b>${r4(a/2)}</b> (each tail).`],hint:'α = 1 − confidence.'}},
+   r=>{const c=ciCtx(r),n=r.pick([30,36,40,50,64]),cl=r.pick([90,95,99]);const s=zCI(c.mu,c.sd,n,cl,true);return{text:`For the ${c.n}, n = ${n}, x̄ = ${nf(c.mu)} and σ = ${nf(c.sd)}. Find the margin of error E at ${cl}% confidence.`,fields:[{label:'E',ans:r4(s.E),tol:Math.max(.006,s.E*.006)}],steps:s.steps.slice(0,3),graph:ciGraph(c.mu,s.se),hint:'E = z × σ/√n.'}},
+   r=>{const ch=['The sample mean x̄','The sample median','The sample range','The population sd σ'];return MC('What is the best point estimate of the population mean μ?',ch,0,['The sample mean <b>x̄</b> is the best point estimate of μ.'])},
+   r=>{const items=[['unbiased','its expected value equals the parameter'],['consistent','it gets closer to the parameter as n grows'],['relatively efficient','it has the smaller variance of two unbiased estimators']];const k=r.int(0,2);const ch=items.map(i=>i[0]);return MC(`An estimator is called ______ if ${items[k][1]}.`,ch,k,[`That is the definition of a <b>${items[k][0]}</b> estimator.`])}],
+  medium:[
+   r=>{const c=ciCtx(r),n=r.pick([30,35,40,45,50,60]),cl=r.pick([90,95,99]);const s=zCI(c.mu,c.sd,n,cl,true);return{text:`A survey of ${n} gives a mean ${c.n} of ${nf(c.mu)}. The population sd is ${nf(c.sd)}. Find the ${cl}% confidence interval for μ.`,fields:[{label:'Lower (LCL)',ans:r2(s.lo),tol:ciTol(s.E)},{label:'Upper (UCL)',ans:r2(s.hi),tol:ciTol(s.E)}],steps:s.steps,graph:ciGraph(c.mu,s.se),live:ciLive(c.mu,s.se),after:{...ciGraph(c.mu,s.se),regions:[[s.lo,s.hi]],ci:[s.lo,s.hi]},hint:'x̄ ± z × σ/√n.'}},
+   r=>{const c=ciCtx(r),n=r.pick([32,40,48,55,70,100]),cl=r.pick([90,95,99]);const s=zCI(c.mu,c.sd,n,cl,false);return{text:`A sample of ${n} has a mean ${c.n} of ${nf(c.mu)} with sample sd ${nf(c.sd)}. Find the ${cl}% confidence interval.`,fields:[{label:'Lower (LCL)',ans:r2(s.lo),tol:ciTol(s.E)},{label:'Upper (UCL)',ans:r2(s.hi),tol:ciTol(s.E)}],steps:s.steps,graph:ciGraph(c.mu,s.se),live:ciLive(c.mu,s.se),after:{...ciGraph(c.mu,s.se),regions:[[s.lo,s.hi]],ci:[s.lo,s.hi]},hint:'n ≥ 30, so z works even with s.'}}],
+  hard:[
+   r=>{const c=ciCtx(r),E=r2(c.sd*r.step(.1,.5,.01));const lo=r2(c.mu-E),hi=r2(c.mu+E);return{text:`A confidence interval for the ${c.n} is ${nf(lo)} &lt; μ &lt; ${nf(hi)}. Find the point estimate x̄ and the margin of error E.`,fields:[{label:'x̄',ans:r2(c.mu),tol:.006},{label:'E',ans:E,tol:.006}],steps:['The point estimate is the middle: x̄ = (LCL + UCL)/2.',`x̄ = (${nf(lo)} + ${nf(hi)}) / 2 = <b>${nf(c.mu)}</b>.`,`E is half the width: (${nf(hi)} − ${nf(lo)}) / 2 = <b>${nf(E)}</b>.`],hint:'Middle = point estimate. Half the width = E.'}},
+   r=>{const c=ciCtx(r),n=r.pick([36,49,64,81,100]),cl=r.pick([90,95,99]);const s=zCI(c.mu,c.sd,n,cl,true);return{text:`For the ${c.n}: n = ${n}, x̄ = ${nf(c.mu)}, σ = ${nf(c.sd)}. Find the width of the ${cl}% confidence interval.`,fields:[{label:'Width',ans:r4(2*s.E),tol:Math.max(.012,s.E*.012)}],steps:s.steps.slice(0,3).concat([`Width = UCL − LCL = 2E = <b>${nf(2*s.E,4)}</b>.`]),graph:ciGraph(c.mu,s.se),hint:'Width = 2E.'}},
+   r=>{const n=30;const base=r.step(14,22,.1);const xs=Array.from({length:n},()=>r2(base+(r.n()+r.n()+r.n()-1.5)*r.step(2,5,.1)));const xb=mean(xs),s=sdev(xs),cl=r.pick([90,95]);const ci=zCI(xb,s,n,cl,false);
+    return{text:`Find the ${cl}% confidence interval of the mean from this random sample of 30 values (thousand pesos): ${xs.join(', ')}.`,fields:[{label:'Lower (LCL)',ans:r2(ci.lo),tol:ciTol(ci.E)+.01},{label:'Upper (UCL)',ans:r2(ci.hi),tol:ciTol(ci.E)+.01}],steps:[`Use your calculator's stat mode: x̄ = ${nf(xb,4)}, s = ${nf(s,4)}.`].concat(ci.steps),graph:ciGraph(xb,ci.se),live:ciLive(xb,ci.se),after:{...ciGraph(xb,ci.se),regions:[[ci.lo,ci.hi]],ci:[ci.lo,ci.hi]},hint:'Get x̄ and s from your calculator first. n = 30 → z.'}}]}},
+// ---------------------------------------------------------------- 8
+{id:'cit',name:'CI with the t-distribution',unit:'Confidence Intervals',
+ learn:[
+  ['When to switch to t','If σ is <b>unknown</b> and the sample is <b>small (n &lt; 30)</b>, use the t-distribution. If σ is known, or n ≥ 30, the z method from the last lesson is used.'],
+  ['What t looks like','Bell-shaped and symmetric like z, but a bit flatter with fatter tails. That makes the interval wider, which makes up for not knowing σ. As n grows, t gets closer to z.'],
+  ['Degrees of freedom','<div class="big">df = n − 1</div>Find the df row in the t-table, and the column for your confidence level (90%, 95%, 99%).'],
+  ['The formula','<div class="big">x̄ − t<sub>α/2</sub>(s/√n) &lt; μ &lt; x̄ + t<sub>α/2</sub>(s/√n)</div>']],
+ examples:[
+  {title:'San Carlos College (PPT)',text:'19 students travel a mean of 10.2 km to school, s = 2.3 km. Find the 99% confidence interval of the true mean.',graph:{...ciGraph(10.2,2.3/Math.sqrt(19)),ci:[8.68,11.72],regions:[[8.68,11.72]]},steps:tCI(10.2,2.3,19,99).steps,answer:'8.68 < μ < 11.72'},
+  {title:'Family sizes (PPT)',text:'A random sample of families gave sizes 5, 6, 7, 4, 3, 8, 2 and 9. Find the 95% confidence interval of the mean.',graph:{...ciGraph(5.5,2.449/Math.sqrt(8)),ci:[3.45,7.55],regions:[[3.45,7.55]]},steps:['n = 8. x̄ = 44/8 = 5.5. s = 2.449 (calculator, sample sd).'].concat(tCI(5.5,2.4495,8,95).steps),answer:'3.45 < μ < 7.55'}],
+ how:{steps:['Ask: is σ known? Is n ≥ 30? If σ unknown and n &lt; 30 → t.','df = n − 1. Read t from the table at your confidence level.','If you get raw data, compute x̄ and s (sample sd, n − 1) with your calculator.','E = t × s/√n.','x̄ − E &lt; μ &lt; x̄ + E.'],mistakes:['Using df = n instead of n − 1.','Using the z value (1.96) when you should use t.','Using the population sd button (σn) instead of the sample sd (sn−1).'],formula:'x̄ ± t(s/√n), df = n − 1'},
+ gen:{
+  easy:[
+   r=>{const n=r.int(5,29),cl=r.pick([90,95,99]);return{text:`A sample of n = ${n} has unknown σ. Find the t value for a ${cl}% confidence interval.`,fields:[{label:'t',ans:tval(n-1,cl),tol:.002}],steps:[`df = n − 1 = ${n-1}.`,`Row ${n-1}, column ${cl}%: t = <b>${tval(n-1,cl).toFixed(3)}</b>.`],hint:'df = n − 1, then use the t-table (button at the top).'}},
+   r=>{const cases=[[false,12,'t'],[true,12,'z'],[false,45,'z'],[true,50,'z'],[false,25,'t'],[false,8,'t'],[true,20,'z'],[false,30,'z']];const [k,n,ans]=r.pick(cases);const ch=['z (standard normal)','t (with df = n − 1)'];
+    return MC(`σ is ${k?'known':'unknown'} and the sample size is n = ${n}. Which distribution do you use for the confidence interval?`,ch,ans==='z'?0:1,[k?'σ is known, so use <b>z</b>.':n>=30?'σ is unknown but n ≥ 30, so <b>z</b> is used (with s).':'σ is unknown and n < 30, so use <b>t</b>.'])},
+   r=>{const n=r.int(4,29);return{text:`What are the degrees of freedom for a t interval with n = ${n}?`,fields:[{label:'df',ans:n-1,tol:0}],steps:[`df = n − 1 = <b>${n-1}</b>.`],hint:'n − 1.'}}],
+  medium:[
+   r=>{const c=ciCtx(r),n=r.int(8,28),cl=r.pick([90,95,99]);const s=tCI(c.mu,c.sd,n,cl);return{text:`A study of ${n} gives a mean ${c.n} of ${nf(c.mu)}, sample sd ${nf(c.sd)}. Find the ${cl}% confidence interval of the true mean.`,fields:[{label:'Lower',ans:r2(s.lo),tol:ciTol(s.E)},{label:'Upper',ans:r2(s.hi),tol:ciTol(s.E)}],steps:s.steps,graph:ciGraph(c.mu,s.se),live:ciLive(c.mu,s.se),after:{...ciGraph(c.mu,s.se),regions:[[s.lo,s.hi]],ci:[s.lo,s.hi]},hint:'σ unknown, n < 30 → t with df = n − 1.'}},
+   r=>{const c=ciCtx(r),n=r.int(6,25),cl=r.pick([90,95,99]);const s=tCI(c.mu,c.sd,n,cl);return{text:`n = ${n}, x̄ = ${nf(c.mu)}, s = ${nf(c.sd)}. Find the maximum error of estimate E at ${cl}% confidence.`,fields:[{label:'E',ans:r4(s.E),tol:Math.max(.006,s.E*.006)}],steps:s.steps.slice(0,4),graph:ciGraph(c.mu,s.se),hint:'E = t × s/√n.'}}],
+  hard:[
+   r=>{const n=r.int(6,10),base=r.int(2,6),xs=Array.from({length:n},()=>base+r.int(0,7));const xb=mean(xs),s=sdev(xs),cl=r.pick([90,95,99]);const ci=tCI(xb,s,n,cl);
+    return{text:`A random sample of families in a street gave these sizes: ${xs.join(', ')}. Find the ${cl}% confidence interval of the mean.`,fields:[{label:'Lower',ans:r2(ci.lo),tol:ciTol(ci.E)+.01},{label:'Upper',ans:r2(ci.hi),tol:ciTol(ci.E)+.01}],steps:[`n = ${n}. x̄ = ${xs.reduce((a,b)=>a+b,0)}/${n} = ${nf(xb,4)}. s = ${nf(s,4)} (sample sd).`].concat(ci.steps),graph:ciGraph(xb,ci.se),live:ciLive(xb,ci.se),after:{...ciGraph(xb,ci.se),regions:[[ci.lo,ci.hi]],ci:[ci.lo,ci.hi]},hint:'Find x̄ and s first. n < 30 and σ unknown → t.'}},
+   r=>{const n=r.int(5,9),xs=Array.from({length:n},()=>r2(r.step(5,15,.1)));const xb=mean(xs),s=sdev(xs),cl=r.pick([95,99]);const ci=tCI(xb,s,n,cl);
+    return{text:`Distances (km) traveled by ${n} randomly chosen students: ${xs.join(', ')}. Find the ${cl}% confidence interval for the true mean distance.`,fields:[{label:'Lower',ans:r2(ci.lo),tol:ciTol(ci.E)+.01},{label:'Upper',ans:r2(ci.hi),tol:ciTol(ci.E)+.01}],steps:[`x̄ = ${nf(xb,4)}, s = ${nf(s,4)}.`].concat(ci.steps),graph:ciGraph(xb,ci.se),live:ciLive(xb,ci.se),after:{...ciGraph(xb,ci.se),regions:[[ci.lo,ci.hi]],ci:[ci.lo,ci.hi]},hint:'Calculator stat mode for x̄ and s, then t.'}},
+   r=>{const n=r.int(10,25),cl=r.pick([90,95,99]),s=r.step(1,5,.1);const zE=ZC[cl]*s/Math.sqrt(n),tE=tval(n-1,cl)*s/Math.sqrt(n);return{text:`With n = ${n} and s = ${s} at ${cl}%, how much wider is E using t instead of z? (E<sub>t</sub> − E<sub>z</sub>)`,fields:[{label:'Difference',ans:r4(tE-zE),tol:.003}],steps:[`E<sub>z</sub> = ${ZC[cl]} × ${s}/√${n} = ${nf(zE,4)}.`,`E<sub>t</sub> = ${tval(n-1,cl).toFixed(3)} × ${s}/√${n} = ${nf(tE,4)}.`,`Difference = <b>${nf(tE-zE,4)}</b>. t is wider because σ is unknown.`],hint:'Compute both E values and subtract.'}}]}},
+// ---------------------------------------------------------------- 9
+{id:'cip',name:'CI for proportions',unit:'Confidence Intervals',
+ learn:[
+  ['Proportion = share','p = the true population proportion. <b>p̂</b> (p-hat) = the sample proportion. X = how many in the sample have the trait, n = sample size.'],
+  ['The basics','<div class="big">p̂ = X/n &nbsp;&nbsp; q̂ = 1 − p̂</div>'],
+  ['The interval','<div class="big">p̂ − z<sub>α/2</sub>√(p̂q̂/n) &lt; p &lt; p̂ + z<sub>α/2</sub>√(p̂q̂/n)</div>E = z<sub>α/2</sub>√(p̂q̂/n) is the bound on the error of estimate. Same z values: 1.645, 1.960, 2.576.']],
+ examples:[
+  {title:'Engineering applicants (PPT)',text:'A sample of 350 engineering applicants included 140 women. Find the 95% confidence interval of the true proportion of women.',graph:{mu:.4,sd:Math.sqrt(.24/350),regions:[[.349,.451]],ci:[.349,.451],showZ:false},steps:pCI(140,350,95).steps,answer:'0.349 < p < 0.451'},
+  {title:'Voters for candidate B (PPT)',text:'420 voters were sampled and 231 favor candidate B. Estimate the fraction favoring B and place a bound on the error using 99% confidence.',graph:{mu:.55,sd:Math.sqrt(.55*.45/420),regions:[[.4875,.6125]],ci:[.4875,.6125],showZ:false},steps:pCI(231,420,99).steps,answer:'p̂ = 0.55, E = 0.0625, 0.4875 < p < 0.6125'}],
+ how:{steps:['Find p̂ = X/n and q̂ = 1 − p̂.','Pick z: 1.645 / 1.960 / 2.576.','Compute √(p̂q̂/n).','E = z × √(p̂q̂/n).','p̂ − E &lt; p &lt; p̂ + E. Answers stay between 0 and 1.'],mistakes:['Using X instead of p̂ in the formula.','Forgetting to divide by n inside the square root.','Writing 40 instead of 0.40.'],formula:'p̂ ± z√(p̂q̂/n)'},
+ gen:{
+  easy:[
+   r=>{const n=r.pick([100,200,250,350,400,420,500]),X=r.int(Math.round(n*.15),Math.round(n*.85));return{text:`In a sample of ${n}, ${X} are ${r.pick(CTX_P)}. Find p̂ and q̂.`,fields:[{label:'p̂',ans:r4(X/n),tol:.0011},{label:'q̂',ans:r4(1-X/n),tol:.0011}],steps:[`p̂ = ${X}/${n} = <b>${f4(X/n)}</b>.`,`q̂ = 1 − ${f4(X/n)} = <b>${f4(1-X/n)}</b>.`],hint:'p̂ = X/n.'}},
+   r=>{const n=r.pick([200,300,350,400,500,600]),X=r.int(Math.round(n*.2),Math.round(n*.8)),cl=r.pick([90,95,99]);const s=pCI(X,n,cl);return{text:`${X} out of ${n} sampled are ${r.pick(CTX_P)}. Find the margin of error E at ${cl}% confidence.`,fields:[{label:'E',ans:r4(s.E),tol:.0015}],steps:s.steps.slice(0,4),hint:'E = z√(p̂q̂/n).'}}],
+  medium:[
+   r=>{const n=r.pick([150,200,300,350,400,420,500,800]),X=r.int(Math.round(n*.2),Math.round(n*.8)),cl=r.pick([90,95,99]);const s=pCI(X,n,cl);return{text:`A sample of ${n} shows ${X} who are ${r.pick(CTX_P)}. Find the ${cl}% confidence interval for the true proportion.`,fields:[{label:'Lower',ans:r4(s.lo),tol:.002},{label:'Upper',ans:r4(s.hi),tol:.002}],steps:s.steps,graph:{mu:s.p,sd:s.se,showZ:false},live:v=>({mu:s.p,sd:s.se,regions:[[v[0],v[1]]],ci:[v[0],v[1]],showZ:false}),after:{mu:s.p,sd:s.se,regions:[[s.lo,s.hi]],ci:[s.lo,s.hi],showZ:false},hint:'p̂ ± z√(p̂q̂/n).'}}],
+  hard:[
+   r=>{const n=r.pick([300,420,500,600]),X=r.int(Math.round(n*.3),Math.round(n*.7));const s=pCI(X,n,99);return{text:`A random sample of ${n} voters produced ${X} in favor of a candidate. Estimate the fraction favoring the candidate, and place a bound on the error using 99% confidence. Then give the interval.`,fields:[{label:'p̂',ans:r4(s.p),tol:.0011},{label:'E',ans:r4(s.E),tol:.0015},{label:'Lower',ans:r4(s.lo),tol:.002},{label:'Upper',ans:r4(s.hi),tol:.002}],steps:s.steps,graph:{mu:s.p,sd:s.se,showZ:false},after:{mu:s.p,sd:s.se,regions:[[s.lo,s.hi]],ci:[s.lo,s.hi],showZ:false},hint:'99% → z = 2.576.'}},
+   r=>{const p=r.step(.2,.8,.01),E=r.step(.02,.07,.001);return{text:`A confidence interval for a proportion is ${f4(p-E)} &lt; p &lt; ${f4(p+E)}. Find p̂ and E.`,fields:[{label:'p̂',ans:r4(p),tol:.0006},{label:'E',ans:r4(E),tol:.0006}],steps:[`p̂ is the middle: (${f4(p-E)} + ${f4(p+E)})/2 = <b>${f4(p)}</b>.`,`E is half the width: (${f4(p+E)} − ${f4(p-E)})/2 = <b>${f4(E)}</b>.`],hint:'Middle and half-width.'}},
+   r=>{const n=r.pick([250,400,500]),X=r.int(Math.round(n*.3),Math.round(n*.7));const a=pCI(X,n,95),b=pCI(X,n,99);return{text:`${X} of ${n} sampled are ${r.pick(CTX_P)}. Find E at 95% and at 99% confidence.`,fields:[{label:'E at 95%',ans:r4(a.E),tol:.0015},{label:'E at 99%',ans:r4(b.E),tol:.0015}],steps:[`p̂ = ${f4(a.p)}, √(p̂q̂/n) = ${nf(a.se,5)}.`,`95%: E = 1.96 × ${nf(a.se,5)} = <b>${f4(a.E)}</b>.`,`99%: E = 2.576 × ${nf(a.se,5)} = <b>${f4(b.E)}</b>.`,'More confidence means a wider interval.'],hint:'Same √(p̂q̂/n), different z.'}}]}},
+// ---------------------------------------------------------------- 10
+{id:'n',name:'Sample size',unit:'Confidence Intervals',
+ learn:[
+  ['The question','"How many people do I need to survey so my estimate is within E of the truth, with a certain confidence?"'],
+  ['For a mean','<div class="big">n = (z<sub>α/2</sub> × σ / E)²</div>σ = population sd (often from a previous study). E = maximum error of estimate.'],
+  ['For a proportion','<div class="big">n = p̂q̂ (z<sub>α/2</sub> / E)²</div>If a previous study gives p, use it (q = 1 − p). If there is no info, use p = 0.5. That gives the largest possible n, so you are safe.'],
+  ['Always round UP','17.64 becomes 18, even 600.25 becomes 601. Rounding down would give you a sample that is too small.']],
+ examples:[
+  {title:'College dean (PPT)',text:'σ = 4.5 hours from a previous study. How large a sample is needed to be 95% confident the estimate is within 2.1 hours of the true mean?',steps:['n = (zσ/E)².','n = (1.96 × 4.5 / 2.1)² = (4.2)² = 17.64.','Round up: <b>n = 18</b>.'],answer:'18'},
+  {title:'Professors with laptops (PPT)',text:'99% confidence. A previous study shows 48% own laptops. Accurate within 3%. Find the minimum sample size.',steps:['p̂ = 0.48, q̂ = 0.52, z = 2.576, E = 0.03.','n = 0.48 × 0.52 × (2.576 / 0.03)² = 0.2496 × 7373.08 = 1840.32.','Round up: <b>n = 1,841</b>.'],answer:'1,841'},
+  {title:'Students who surf the internet (PPT)',text:'Estimate the proportion who surf the internet daily within 4% with 95% confidence. No previous estimate.',steps:['No info, so p = 0.5, q = 0.5.','n = 0.25 × (1.96 / 0.04)² = 0.25 × 2401 = 600.25.','Round up: <b>n = 601</b>.'],answer:'601'}],
+ how:{steps:['Decide: mean (has σ) or proportion (has a percent)?','Get z: 1.645 / 1.960 / 2.576.','Write E as a decimal (3% → 0.03).','Plug into the formula.','Round UP to the next whole number.'],mistakes:['Rounding down.','Using 3 instead of 0.03 for E.','Forgetting to square.'],formula:'n = (zσ/E)² · n = p̂q̂(z/E)²'},
+ gen:{
+  easy:[
+   r=>{const sd=r.step(2,15,.5),E=r.step(.5,4,.1),cl=r.pick([90,95,99]);const raw=(ZC[cl]*sd/E)**2,n=Math.ceil(raw-1e-9);return{text:`A previous study shows σ = ${sd}. How large a sample is needed to estimate the mean within ${E} at ${cl}% confidence?`,fields:[{label:'n',ans:n,tol:0,type:'n',raw}],steps:['n = (zσ/E)².',`n = (${ZC[cl]} × ${sd} / ${E})² = (${nf(ZC[cl]*sd/E,4)})² = ${nf(raw,4)}.`,`Round up: <b>n = ${n}</b>.`],hint:'Square (z × σ ÷ E), then round up.'}}],
+  medium:[
+   r=>{const p=r.step(.1,.9,.01),E=r.pick([.02,.03,.04,.05]),cl=r.pick([90,95,99]);const raw=p*(1-p)*(ZC[cl]/E)**2,n=Math.ceil(raw-1e-9);return{text:`A researcher wants to estimate a proportion with ${cl}% confidence, within ${E*100}%. A previous study found ${Math.round(p*100)}%. Find the minimum sample size.`,fields:[{label:'n',ans:n,tol:0,type:'n',raw}],steps:[`p̂ = ${p}, q̂ = ${r2(1-p)}, z = ${ZC[cl]}, E = ${E}.`,`n = ${p} × ${r2(1-p)} × (${ZC[cl]} / ${E})² = ${nf(p*(1-p),4)} × ${nf((ZC[cl]/E)**2,2)} = ${nf(raw,4)}.`,`Round up: <b>n = ${nf(n)}</b>.`],hint:'n = p̂q̂(z/E)². E as a decimal.'}},
+   r=>{const sd=r.int(100,2000),E=r.int(20,300),cl=r.pick([90,95,99]);const raw=(ZC[cl]*sd/E)**2,n=Math.ceil(raw-1e-9);return{text:`Monthly spending has σ = ₱${nf(sd)}. To be ${cl}% confident the sample mean is within ₱${E} of the true mean, how many people should be sampled?`,fields:[{label:'n',ans:n,tol:0,type:'n',raw}],steps:[`n = (${ZC[cl]} × ${sd} / ${E})² = ${nf(raw,4)}.`,`Round up: <b>n = ${nf(n)}</b>.`],hint:'Same formula, bigger numbers.'}}],
+  hard:[
+   r=>{const E=r.pick([.02,.03,.04,.05,.06]),cl=r.pick([90,95,99]);const raw=.25*(ZC[cl]/E)**2,n=Math.ceil(raw-1e-9);return{text:`How large a sample should be surveyed to estimate the true proportion of ${r.pick(CTX_P)} within ${E*100}% with ${cl}% confidence? (No previous estimate.)`,fields:[{label:'n',ans:n,tol:0,type:'n',raw}],steps:['No previous estimate → p = 0.5, q = 0.5.',`n = 0.25 × (${ZC[cl]} / ${E})² = ${nf(raw,4)}.`,`Round up: <b>n = ${nf(n)}</b>.`],hint:'No info → p = 0.5.'}},
+   r=>{const ch=['It becomes 4 times as large','It doubles','It is cut in half','It stays the same'];return MC('If you cut the margin of error E in half (keeping everything else the same), what happens to the needed sample size n?',ch,0,['n has E² in the denominator. Halving E makes E² one quarter, so n becomes <b>4 times</b> as large.'])},
+   r=>{const sd=r.step(3,12,.5),E=r.step(.5,2,.1);const n95=Math.ceil((1.96*sd/E)**2-1e-9),n99=Math.ceil((2.576*sd/E)**2-1e-9);return{text:`σ = ${sd}, E = ${E}. How many MORE people are needed at 99% confidence than at 95%?`,fields:[{label:'Extra people',ans:n99-n95,tol:0}],steps:[`95%: n = (1.96 × ${sd} / ${E})² = ${nf((1.96*sd/E)**2,4)} → ${n95}.`,`99%: n = (2.576 × ${sd} / ${E})² = ${nf((2.576*sd/E)**2,4)} → ${n99}.`,`Difference = ${n99} − ${n95} = <b>${n99-n95}</b>.`],hint:'Compute both, round each up, subtract.'}},
+   r=>{const p=r.step(.3,.7,.01),E=r.pick([.03,.04]),cl=r.pick([95,99]);const a=Math.ceil(p*(1-p)*(ZC[cl]/E)**2-1e-9),b=Math.ceil(.25*(ZC[cl]/E)**2-1e-9);return{text:`At ${cl}% confidence within ${E*100}%: find n using a previous estimate of ${Math.round(p*100)}%, and n with no previous estimate.`,fields:[{label:'n with estimate',ans:a,tol:0},{label:'n with no info',ans:b,tol:0}],steps:[`With p̂ = ${p}: n = ${nf(p*(1-p),4)} × (${ZC[cl]}/${E})² → <b>${a}</b>.`,`With p = 0.5: n = 0.25 × (${ZC[cl]}/${E})² → <b>${b}</b>.`,'p = 0.5 always gives the biggest (safest) n.'],hint:'Do it twice: once with p̂, once with 0.5.'}}]}}
+];
+const TOPICS=[...UNIT_A,...UNIT_B];
+
+// ===== Study mode: expanded notes + PPT-style worked solutions with "why" for every step =====
+const rowcol=z=>{z=Math.abs(r2(z));return `row ${(Math.floor(z*10+1e-9)/10).toFixed(1)}, column .0${Math.round(z*100)%10}`};
+const P=s=>`<span class="pv">${s}</span>`;
+// --- probability problems (normal, CLT, binomial) ---
+function wProb(o){
+  const st=[],mu=o.mu,se=o.n?o.sd/Math.sqrt(o.n):o.sd,reg=o.region,unit=o.n?'x̄':'X';
+  st.push({t:'Write what you know',why:'Before any formula, pull the numbers out of the word problem and name them. Half of all mistakes come from using the wrong number.',work:o.given.concat([`Find: ${o.find}`])});
+  if(o.binom){const b=o.binom,q=r2(1-b.p),np=r2(b.n*b.p),nq=r2(b.n*q);
+    st.push({t:'Check if the normal curve is allowed',why:'The normal approximation only works when both np and nq are at least 5. If either is below 5, you cannot use the z-table here.',work:[`np = ${b.n}(${b.p}) = ${np} ≥ 5 ✓`,`nq = ${b.n}(${q}) = ${nq} ≥ 5 ✓`,'∴ the normal approximation can be used']});
+    st.push({t:'Get the mean and sd of the count',why:'The normal curve we borrow has the same center and spread as the binomial.',work:[`μ = np = ${np}`,`σ = √(npq) = √(${b.n} × ${b.p} × ${q}) = √${nf(b.n*b.p*q,4)} = ${f2(se)}`]});
+    st.push({t:'Apply the continuity correction',why:b.why,work:[b.from+'  →  '+b.to]})}
+  if(o.n)st.push({t:'Get the standard error',why:'The question is about the MEAN of a sample, not one value. Sample means spread less, so divide σ by √n.',work:[`σx̄ = σ/√n = ${nf(o.sd)}/√${o.n} = ${nf(se,4)}`]});
+  const gr=reg.tails?[[null,reg.tails[0]],[reg.tails[1],null]]:[reg];
+  st.push({t:'Draw the curve and shade',why:'Put the mean in the middle, mark your value(s), and shade what the question asks. The picture tells you which rule to use later, so never skip it.',g:{mu,sd:se,regions:gr,showZ:mu===0&&se===1?false:undefined,bars:o.binom&&se<12?{on:o.binom.on}:null}});
+  const edges=reg.tails?reg.tails:reg.filter(v=>v!=null),zs=edges.map(v=>r2((v-mu)/se));
+  if(!(mu===0&&se===1))st.push({t:'Convert to z',why:`The table only knows the standard curve (mean 0, sd 1). The z formula moves your value onto it. Round z to 2 decimals.`,work:edges.map((v,i)=>`z = (${unit} − μ)/${o.n?'σx̄':'σ'} = (${nf(v)} − ${nf(mu)})/${nf(se,4)} = ${f2(zs[i])}`)});
+  st.push({t:'Look up the table',why:'The z-table gives the area from the middle (0) out to z. A negative z uses the same number because the curve is symmetric.',work:zs.map(z=>`z = ${f2(z)}: ${rowcol(z)} → A = ${f4(A(z))}`)});
+  // rule
+  let why,work,ans;const Az=zs.map(A);
+  if(reg.tails){const t1=r4(.5-Az[0]),t2=r4(.5-Az[1]);ans=r4(t1+t2);why='There are two separate tails. Find each tail with 0.5 − A, then add them.';work=[`left tail = 0.5000 − ${f4(Az[0])} = ${f4(t1)}`,`right tail = 0.5000 − ${f4(Az[1])} = ${f4(t2)}`,`total = ${f4(t1)} + ${f4(t2)} = ${f4(ans)}`]}
+  else{const [a,b]=reg;
+    if(a==null){const z=zs[0];if(z>=0){ans=.5+Az[0];why='The shaded part covers the whole left half (0.5) plus the strip from 0 to z. Big side → add 0.5.';work=[`P = 0.5000 + ${f4(Az[0])} = ${f4(ans)}`]}else{ans=.5-Az[0];why='The shaded part is only the small left tail. Tail → subtract from 0.5.';work=[`P = 0.5000 − ${f4(Az[0])} = ${f4(ans)}`]}}
+    else if(b==null){const z=zs[0];if(z>=0){ans=.5-Az[0];why='The shaded part is the small right tail. Tail → 0.5 − A.';work=[`P = 0.5000 − ${f4(Az[0])} = ${f4(ans)}`]}else{ans=.5+Az[0];why='The shaded part crosses the middle and takes the whole right half. Big side → A + 0.5.';work=[`P = ${f4(Az[0])} + 0.5000 = ${f4(ans)}`]}}
+    else{const [z1,z2]=zs;if(z1===0||z2===0){ans=z1===0?Az[1]:Az[0];why='One edge is the mean itself, so the table area is already the answer.';work=[`P = ${f4(ans)}`]}
+      else if(z1*z2>0){ans=Math.abs(Az[1]-Az[0]);why='Both edges are on the same side of the middle. The bigger strip minus the smaller strip leaves the piece between them.';work=[`P = ${f4(Math.max(...Az))} − ${f4(Math.min(...Az))} = ${f4(ans)}`]}
+      else{ans=Az[0]+Az[1];why='The edges are on opposite sides of the middle. The shaded part is two strips joined at 0, so add them.';work=[`P = ${f4(Az[0])} + ${f4(Az[1])} = ${f4(ans)}`]}}}
+  ans=r4(ans);st.push({t:'Pick the rule and compute',why,work});
+  st.push({t:'Answer in words',why:'Give the decimal and the percent, then say what it means in the story. Profs give points for the sentence.',work:[`P = ${f4(ans)} or ${pc(ans)}`,o.say?o.say.replace('%P',pc(ans)):'']});
+  return{title:o.title,text:o.text,steps:st,answer:`${f4(ans)} (${pc(ans)})`,src:o.src}}
+// --- confidence intervals ---
+function wCI(o){const st=[];st.push({t:'Write what you know',why:'List every number and say what it is. Note whether you were given σ (population) or s (sample).',work:o.given.concat([`Find: ${o.find}`])});
+  if(o.pre)o.pre.forEach(p=>st.push(p));
+  let crit,se,E,lo,hi,mid=o.xb;
+  if(o.kind==='p'){const p=o.X/o.n,q=1-p;mid=p;crit=ZC[o.cl];se=Math.sqrt(p*q/o.n);
+    st.push({t:'Compute p̂ and q̂',why:'p̂ is the share in your sample. It is the best point estimate of the true proportion p.',work:[`p̂ = X/n = ${o.X}/${o.n} = ${nf(p,4)}`,`q̂ = 1 − p̂ = ${nf(q,4)}`]});
+    st.push({t:'Get z for the confidence level',why:`Proportions always use z. Split the confidence in half: ${o.cl/100}/2 = ${o.cl/200}. Find that area inside the z-table.`,work:[`z(α/2) = ${crit}`]});
+    st.push({t:'Standard error',why:'This measures how much p̂ would bounce around from sample to sample.',work:[`√(p̂q̂/n) = √(${nf(p,4)} × ${nf(q,4)} / ${o.n}) = ${nf(se,5)}`]})}
+  else{const useT=o.kind==='t';se=o.sd/Math.sqrt(o.n);
+    st.push({t:'Choose z or t',why:useT?'σ is unknown and n is less than 30. A small sample with an estimated sd needs the wider t-distribution.':o.known?'σ (the population sd) is given, so z is used.':'σ is unknown, but n ≥ 30, so the PPT rule says use z with s in place of σ.',work:[useT?`σ unknown, n = ${o.n} < 30 → t, df = n − 1 = ${o.n-1}`:`${o.known?'σ known':'n = '+o.n+' ≥ 30'} → z`]});
+    crit=useT?tval(o.n-1,o.cl):ZC[o.cl];
+    st.push({t:useT?'Read t from the t-table':'Get z for the confidence level',why:useT?`Go to row df = ${o.n-1} and the ${o.cl}% column.`:`Half of ${o.cl}% is ${o.cl/200}. The z whose table area is ${o.cl/200} is ${crit}. (90% → 1.645, 95% → 1.960, 99% → 2.576.)`,work:[useT?`t(α/2) = ${crit.toFixed(3)}`:`z(α/2) = ${crit}`]});
+    st.push({t:'Standard error',why:'How much the sample mean typically misses μ by.',work:[`${o.known?'σ':'s'}/√n = ${nf(o.sd,4)}/√${o.n} = ${nf(se,4)}`]})}
+  E=crit*se;lo=mid-E;hi=mid+E;const d=o.kind==='p'?4:2,fm=v=>v.toFixed(d);
+  st.push({t:'Margin of error E',why:'E is the "plus or minus" part. It is the maximum error of estimate at this confidence level.',work:[`E = ${o.kind==='t'?crit.toFixed(3):crit} × ${nf(se,o.kind==='p'?5:4)} = ${nf(E,4)}`]});
+  st.push({t:'Build the interval',why:'Go E below and E above the point estimate. Left = lower confidence limit (LCL), right = upper (UCL).',work:[`LCL = ${nf(mid,4)} − ${nf(E,4)} = ${fm(lo)}`,`UCL = ${nf(mid,4)} + ${nf(E,4)} = ${fm(hi)}`,`${fm(lo)} < ${o.kind==='p'?'p':'μ'} < ${fm(hi)}`],g:{mu:mid,sd:se,regions:[[lo,hi]],ci:[lo,hi],markers:[{x:mid,label:o.kind==='p'?'p̂':'x̄'}],showZ:false}});
+  st.push({t:'Answer in words',why:'State the confidence level and what the interval is about.',work:[`We are ${o.cl}% confident that the true ${o.what} is between ${fm(lo)} and ${fm(hi)}.`]});
+  return{title:o.title,text:o.text,steps:st,answer:`${fm(lo)} < ${o.kind==='p'?'p':'μ'} < ${fm(hi)}`,src:o.src}}
+function wN(o){const st=[],z=ZC[o.cl];st.push({t:'Write what you know',why:'Find the confidence level, the allowed error E (as a decimal), and σ or p.',work:o.given.concat(['Find: the minimum sample size n'])});
+  let raw;
+  if(o.kind==='mean'){raw=(z*o.sd/o.E)**2;st.push({t:'Pick the formula',why:'You have σ and want a mean, so use the mean formula.',work:['n = (z·σ / E)²']});
+    st.push({t:'Substitute',why:'Multiply z by σ, divide by E, then square the result.',work:[`n = (${z} × ${o.sd} / ${o.E})²`,`n = (${nf(z*o.sd/o.E,4)})² = ${nf(raw,4)}`]})}
+  else{const p=o.p??.5,q=r2(1-p);raw=p*q*(z/o.E)**2;st.push({t:'Pick the formula',why:o.p==null?'It is a proportion and there is no earlier estimate, so use p = 0.5. That gives the biggest n, so your sample is surely big enough.':'It is a proportion and a previous study gives p, so use it.',work:['n = p̂q̂(z/E)²',`p̂ = ${p}, q̂ = ${q}`]});
+    st.push({t:'Substitute',why:'Divide z by E, square it, then multiply by p̂q̂.',work:[`n = ${p} × ${q} × (${z}/${o.E})²`,`n = ${nf(p*q,4)} × ${nf((z/o.E)**2,4)} = ${nf(raw,4)}`]})}
+  const n=Math.ceil(raw-1e-9);st.push({t:'Round UP',why:'Rounding down would give a sample a little too small to reach the error you want. Always go up, even from .01.',work:[`n = ${nf(raw,4)} → ${nf(n)}`]});
+  return{title:o.title,text:o.text,steps:st,answer:`n = ${nf(n)}`,src:o.src}}
+const W=(title,text,steps,answer,src)=>({title,text,steps,answer,src});
+
+const STUDY={
+curve:{notes:[
+ ['What a "distribution" means','A distribution shows how often each value happens. A <b>continuous</b> distribution (like height, salary, time) can take any value, even 172.35 cm. For continuous data we talk about the <b>area under a curve</b>, not the height of a bar. Area = probability.'],
+ ['Why the bell shape shows up everywhere','Heights, exam scores, measurement errors and daily sales all come from many small, independent things adding up. That kind of data piles up in the middle and thins out on both sides. That is the bell curve. It is also called the Gaussian distribution. De Moivre found it in 1733 as an approximation to the binomial.'],
+ ['The 8 properties, explained','<ol><li><b>Bell-shaped</b>: high in the middle, low at the ends.</li><li><b>Mean = median = mode</b>: all three sit at the center peak. If they don\'t match, the data are skewed.</li><li><b>Unimodal</b>: only one peak.</li><li><b>Symmetric</b>: fold it at the mean and both halves match. So 50% is below the mean and 50% above.</li><li><b>Continuous</b>: no gaps; every value is possible.</li><li><b>Asymptotic</b>: the tails get closer and closer to the x-axis but never touch it. Extreme values are rare but not impossible.</li><li><b>Total area = 1.00 (100%)</b>: all probabilities add up to 1.</li><li><b>Empirical rule</b>: about 68% within 1 sd, 95% within 2 sd, 99.7% within 3 sd.</li></ol>'],
+ ['The band figure (memorize this picture)','From the mean going right: <b>34.13%</b> to +1σ, <b>13.59%</b> from +1σ to +2σ, <b>2.14%</b> from +2σ to +3σ, <b>0.13%</b> beyond. The left side is the mirror image. Within ±1σ = 2 × 34.13 = 68.26%. Within ±2σ = 2 × (34.13 + 13.59) = 95.44%. Within ±3σ = 99.74%.'],
+ ['Checking if data are normal','The PPT gives three checks: (1) draw a <b>histogram</b> and see if it looks like a bell; (2) compute <b>Pearson\'s Index</b>; (3) check for <b>outliers</b>.<div class="big">PI = 3(mean − median) / sd</div><ul><li>−1 ≤ PI ≤ +1 → approximately normal</li><li>PI &gt; +1 → positively (right) skewed: the mean got pulled up by big values</li><li>PI &lt; −1 → negatively (left) skewed: the mean got pulled down by small values</li></ul>'],
+ ['How to solve these questions','<b>Property question?</b> Think of the picture: symmetric, one peak, area 1, tails never touch. <b>"What percent between…"?</b> Count how many sd each edge is from the mean, then add band percents. <b>"Is it normal?"</b> Compute PI and compare to ±1.']],
+ worked:[
+  W('Call center salaries (PPT)','Monthly salary (thousands) of call center agents: mean 23.80, median 23.70, sd 4.45, Q1 20.73, Q3 26.93. Are the data approximately normal?',[
+   {t:'Write what you know',why:'Only the mean, median and sd go into Pearson\'s Index. Q1 and Q3 are extra info you don\'t need here.',work:['mean = 23.80, median = 23.70, sd = 4.45','Find: PI, then decide']},
+   {t:'Formula',why:'Pearson\'s Index measures skewness by comparing the mean to the median.',work:['PI = 3(mean − median) / sd']},
+   {t:'Substitute',why:'Subtract first, multiply by 3, then divide by sd.',work:['PI = 3(23.80 − 23.70) / 4.45','PI = 3(0.10) / 4.45 = 0.30 / 4.45 = 0.07']},
+   {t:'Decide',why:'The rule: if PI is between −1 and +1, call it normal.',work:['−1 ≤ 0.07 ≤ +1','∴ the data are approximately normally distributed']}],'PI = 0.07, approximately normal','PPT'),
+  W('Using the bands','UST test scores: mean 180, sd 25. What percent score between 155 and 230? What percent score above 230?',[
+   {t:'Find how many sd away each value is',why:'The band percents work in sd steps, so convert each value into "how many sd from the mean".',work:['155 = 180 − 25 → −1σ','230 = 180 + 2(25) → +2σ']},
+   {t:'Draw and shade',why:'See which bands are inside.',g:{mu:180,sd:25,regions:[[155,230]]}},
+   {t:'Add the bands',why:'From −1σ to 0: 34.13. From 0 to +1σ: 34.13. From +1σ to +2σ: 13.59.',work:['34.13 + 34.13 + 13.59 = 81.85%']},
+   {t:'Above 230',why:'Beyond +2σ on one side is 2.14 + 0.13.',work:['2.14 + 0.13 = 2.28%']}],'81.85% between, 2.28% above'),
+  W('A skewed data set','Daily sales: mean 50, median 46, sd 8. Is the distribution normal?',[
+   {t:'Substitute into PI',why:'Same formula every time.',work:['PI = 3(50 − 46) / 8 = 12/8 = 1.5']},
+   {t:'Decide',why:'1.5 is outside −1 to +1. It is positive, so the mean is pulled up by a few very large values.',work:['1.5 > 1 → significantly positively skewed, not normal']}],'PI = 1.5, positively skewed')]},
+z:{notes:[
+ ['Standard units','A raw number like "18,500 pesos" means nothing until you compare it to the average and the spread. The z-score says how many standard deviations a value is from the mean. That is why it is called a <b>standard score</b> or value in <b>standard units</b>.'],
+ ['Why we need it','There are endless normal curves (mean 40 sd 5, mean 23,000 sd 2,500…). We can\'t print a table for each. So every value is converted to the <b>standard normal distribution</b> (mean 0, sd 1). One table then works for all problems.'],
+ ['The formula, piece by piece','<div class="big">z = (X − μ) / σ</div><ul><li><b>X − μ</b>: how far X is from the mean, in the original units (pesos, years).</li><li><b>÷ σ</b>: turns that distance into "number of sd". Units cancel, so z has no units.</li></ul>'],
+ ['Reading the sign','Positive z: above the mean. Negative z: below. z = 0: exactly the mean. Most z-scores fall between −3 and 3. A z of 2.5 means unusually high.'],
+ ['Going backwards','Multiply both sides by σ and add μ: <div class="big">X = μ + zσ</div>Use this for cutoffs: "the top 20% start at what score?"'],
+ ['Comparing different scales','To compare scores from tests with different means and sds, compare their z-scores. The higher z is relatively better.'],
+ ['How to solve','1) List μ, σ, X. 2) Subtract μ from X. 3) Divide by σ. 4) Keep the sign. 5) Round to 2 decimals. To find X: X = μ + zσ.']],
+ worked:[
+  W('Pag-ibig loan (PPT)','Average Pag-ibig salary loan = 23,000, sd = 2,500. What is the z-score of an employee who owes 18,500?',[
+   {t:'Write what you know',why:'Name each number.',work:['μ = 23,000   σ = 2,500   X = 18,500','Find: z']},
+   {t:'Formula and substitute',why:'Subtract the mean first, then divide by σ.',work:['z = (X − μ)/σ','z = (18,500 − 23,000)/2,500','z = −4,500/2,500 = −1.80']},
+   {t:'Interpret',why:'The negative sign means below average.',work:['18,500 is 1.80 sd below the mean'],g:{mu:23000,sd:2500,markers:[{x:18500,label:'z = −1.80'}]}}],'z = −1.80','PPT'),
+  W('UST cutoff (PPT)','The UST test has mean 180, sd 25. The cutoff is at z = 0.84. What score is that?',[
+   {t:'Formula backwards',why:'We know z and want X.',work:['X = μ + zσ']},
+   {t:'Substitute',why:'Multiply z by σ first, then add μ.',work:['X = 180 + 0.84(25) = 180 + 21 = 201']}],'201','PPT'),
+  W('Which test went better?','Economics: you got 82 (mean 70, sd 8). Statistics: you got 64 (mean 55, sd 5). Which is relatively better?',[
+   {t:'z for each',why:'Raw scores can\'t be compared directly since the tests have different means and spreads.',work:['Econ: z = (82 − 70)/8 = 1.50','Stat: z = (64 − 55)/5 = 1.80']},
+   {t:'Compare',why:'Higher z = farther above average.',work:['1.80 > 1.50 → Statistics is relatively better']}],'Statistics')]},
+area:{notes:[
+ ['How to read the z-table','Your table (Table A) shows the area between 0 and z. Split z into two parts: the first decimal picks the <b>row</b> (1.8), the second decimal picks the <b>column</b> (.05). Where they meet is the area: A(1.85) = 0.4678.'],
+ ['Negative z','The table has no negative rows. The curve is symmetric, so A(−1.15) = A(1.15) = 0.3749. The sign only tells you which side to shade.'],
+ ['The six cases (with pictures)',`<div class="cases">
+   <div><b>0 to z</b><br>A${graph({regions:[[0,1.2]],showZ:false})}</div>
+   <div><b>Tail</b><br>0.5 − A${graph({regions:[[1.2,null]],showZ:false})}</div>
+   <div><b>Big side</b><br>0.5 + A${graph({regions:[[null,1.2]],showZ:false})}</div>
+   <div><b>Same side</b><br>A₂ − A₁${graph({regions:[[.6,1.6]],showZ:false})}</div>
+   <div><b>Opposite sides</b><br>A₁ + A₂${graph({regions:[[-1,1.4]],showZ:false})}</div>
+   <div><b>Two tails</b><br>(0.5 − A₁) + (0.5 − A₂)${graph({regions:[[null,-1.4],[1,null]],showZ:false})}</div></div>`],
+ ['Backwards (area → z)','Look inside the body of the table for the area, then read its row and column. If the exact value isn\'t there, take the closest one. If the area given includes a half (e.g. 0.8749 to the left), subtract 0.5 first: 0.8749 − 0.5 = 0.3749 → z = 1.15.'],
+ ['Very big z','Past z = 3.49 the area from 0 is about 0.5000. So a tail beyond z = 4 is basically 0.'],
+ ['How to solve','1) Sketch the curve, mark 0. 2) Mark z, shade the region. 3) Look up A for each z. 4) Look at your shading and pick the case. 5) Write the answer as a decimal and a percent.']],
+ worked:[
+  wProb({title:'Between z = 0 and z = 1.85 (PPT)',text:'Find the area under the standard normal curve between z = 0 and z = 1.85.',mu:0,sd:1,region:[0,1.85],given:['z = 1.85'],find:'P(0 < z < 1.85)',src:'PPT'}),
+  wProb({title:'Between z = 0 and z = −1.15 (PPT)',text:'Find the area between z = 0 and z = −1.15.',mu:0,sd:1,region:[-1.15,0],given:['z = −1.15'],find:'P(−1.15 < z < 0)',src:'PPT'}),
+  wProb({title:'Right of z = 1.15 (PPT)',text:'Find the area to the right of z = 1.15.',mu:0,sd:1,region:[1.15,null],given:['z = 1.15'],find:'P(z > 1.15)',src:'PPT'}),
+  wProb({title:'Left of z = −1.85 (PPT)',text:'Find the area to the left of z = −1.85.',mu:0,sd:1,region:[null,-1.85],given:['z = −1.85'],find:'P(z < −1.85)',src:'PPT'}),
+  wProb({title:'Between z = 0.75 and z = 1.85 (PPT)',text:'Find the area between z = 0.75 and z = 1.85.',mu:0,sd:1,region:[.75,1.85],given:['z₁ = 0.75, z₂ = 1.85'],find:'P(0.75 < z < 1.85)',src:'PPT'}),
+  wProb({title:'Between z = −0.75 and z = −1.85 (PPT)',text:'Find the area between z = −0.75 and z = −1.85.',mu:0,sd:1,region:[-1.85,-.75],given:['z₁ = −1.85, z₂ = −0.75'],find:'P(−1.85 < z < −0.75)',src:'PPT'}),
+  wProb({title:'Between z = 1.15 and z = −1.85 (PPT)',text:'Find the area between z = −1.85 and z = 1.15.',mu:0,sd:1,region:[-1.85,1.15],given:['z₁ = −1.85, z₂ = 1.15'],find:'P(−1.85 < z < 1.15)',src:'PPT'}),
+  wProb({title:'Left of z = 1.15 (PPT)',text:'Find the area to the left of z = 1.15.',mu:0,sd:1,region:[null,1.15],given:['z = 1.15'],find:'P(z < 1.15)',src:'PPT'}),
+  wProb({title:'Right of z = −1.15 (PPT)',text:'Find the area to the right of z = −1.15.',mu:0,sd:1,region:[-1.15,null],given:['z = −1.15'],find:'P(z > −1.15)',src:'PPT'}),
+  wProb({title:'Right of 1.15 and left of −1.85 (PPT)',text:'Find the area to the right of z = 1.15 and to the left of z = −1.85.',mu:0,sd:1,region:{tails:[-1.85,1.15]},given:['z₁ = −1.85, z₂ = 1.15'],find:'P(z < −1.85) + P(z > 1.15)',src:'PPT'}),
+  W('Area 0.3962 → find z (PPT)','Find z if the area between 0 and z is 0.3962.',[
+   {t:'Understand the direction',why:'This time the area is given and z is missing, so search INSIDE the table instead of the edges.',work:['A = 0.3962, find z']},
+   {t:'Search the table',why:'Scan the body for 0.3962.',work:['0.3962 is at row 1.2, column .06']},
+   {t:'Read z',why:'Row + column = z. The slide writes 1.36, but A(1.36) = 0.4131, so 1.26 is right.',work:['z = 1.26'],g:{regions:[[0,1.26]],markers:[{x:1.26,label:'1.26'}],showZ:false}}],'z = 1.26','PPT')]},
+apply:{notes:[
+ ['The full routine','Real problems are z-table problems with one extra step at the start: convert from real units to z.<ol><li>Write μ, σ, X.</li><li>Draw, shade.</li><li>z = (X − μ)/σ.</li><li>Look up A.</li><li>Pick the rule.</li><li>Answer + sentence.</li></ol>'],
+ ['Wording dictionary','<table class="tbl"><tr><th>Words</th><th>Shade</th></tr><tr><td>less than, below, under, at most, no more than</td><td>left of X</td></tr><tr><td>more than, above, over, at least, no less than</td><td>right of X</td></tr><tr><td>between, from … to</td><td>between two values</td></tr><tr><td>top p%</td><td>right tail of area p</td></tr><tr><td>bottom p%</td><td>left tail of area p</td></tr></table>For continuous data, "less than" and "at most" give the same area.'],
+ ['Probability, percent, or count?','A probability (0.0359) can be said as a percent (3.59%). If the question asks "how many out of 500", multiply: 500 × 0.0359 ≈ 18.'],
+ ['Cutoffs (working backwards)','<ol><li>Top p% → tail area p. Area from mean to cutoff = 0.5 − p.</li><li>Find that area INSIDE the table → z (closest value).</li><li>Top → z positive. Bottom → z negative.</li><li>X = μ + zσ.</li></ol>'],
+ ['How to solve','Read the question twice: underline the numbers, circle the direction word. Then follow the routine.']],
+ worked:[
+  wProb({title:'Pag-ibig salary loan (PPT)',text:'The average Pag-ibig salary loan for RFS Pharmacy employees is 23,000. If the debt is normally distributed with sd 2,500, find the probability that the employee owes less than 18,500.',mu:23000,sd:2500,region:[null,18500],given:['μ = 23,000','σ = 2,500','X = 18,500'],find:'P(X < 18,500)',say:'There is a %P chance an employee owes less than 18,500.',src:'PPT'}),
+  wProb({title:'Bank managers (PPT)',text:'The average age of bank managers is 40 years, normally distributed, sd 5. Find the probability that a randomly selected manager is between 35 and 46 years old.',mu:40,sd:5,region:[35,46],given:['μ = 40','σ = 5','X₁ = 35, X₂ = 46'],find:'P(35 < X < 46)',say:'About %P of bank managers are 35 to 46 years old.',src:'PPT'}),
+  W('UST Master\'s program cutoff (PPT)','To qualify for a Master\'s in Economics at UST, candidates must score in the top 20%. Mean 180, sd 25. Find the lowest possible score to qualify.',[
+   {t:'Write what you know',why:'This is a backwards problem: we have an area and want X.',work:['μ = 180, σ = 25, top 20% → right tail = 0.2000','Find: X (cutoff)']},
+   {t:'Draw',why:'The top 20% is a right tail. The cutoff sits a bit above the mean.',g:{mu:180,sd:25,regions:[[201,null]],markers:[{x:201,label:'X = ?'}]}},
+   {t:'Find the table area',why:'The table measures from the mean. The part between the mean and the cutoff is half minus the tail.',work:['0.5000 − 0.2000 = 0.3000']},
+   {t:'Search inside the table',why:'0.3000 is not exact. The closest value is 0.2995.',work:['0.2995 → z = 0.84']},
+   {t:'Convert back to X',why:'Use X = μ + zσ. z is positive because it is the top.',work:['0.84 = (X − 180)/25','X = 180 + 0.84(25) = 201']},
+   {t:'Answer',why:'State it in context.',work:['A candidate needs at least 201 to qualify.']}],'201','PPT'),
+  wProb({title:'Same-side example',text:'Jeepney daily earnings average ₱2,500, sd ₱300. Find the probability that a driver earns between ₱2,650 and ₱3,100.',mu:2500,sd:300,region:[2650,3100],given:['μ = 2,500','σ = 300','X₁ = 2,650, X₂ = 3,100'],find:'P(2,650 < X < 3,100)',say:'%P of days earn between ₱2,650 and ₱3,100.'})]},
+clt:{notes:[
+ ['Population vs sample','The <b>population</b> is everyone (all LTO cars). A <b>sample</b> is the few you actually check (35 cars). From the sample we compute statistics like x̄, which we use to learn about population parameters like μ.'],
+ ['Sampling distribution of x̄','Imagine taking every possible sample of 35 cars and computing x̄ each time. Those x̄ values form their own distribution, called the <b>sampling distribution of the sample mean</b>.'],
+ ['Central Limit Theorem (CLT)','<ul><li>The bigger n is, the more the sampling distribution of x̄ looks normal.</li><li>Its center is the same μ.</li><li>Its spread is smaller: σx̄ = σ/√n, called the <b>standard error</b>.</li></ul>The CLT lets us use the z-table for sample means.'],
+ ['Why averages spread less','One car might be 60 months or 180 months old. But the average of 35 cars almost never lands that far out, because old and new cars cancel each other. That is why we divide by √n.'],
+ ['Sampling error','The gap between a sample statistic and the true parameter (x̄ − μ). It happens because a sample is never a perfect copy of the population.'],
+ ['The key decision','<b>One value</b> (a person, a car) → z = (X − μ)/σ. <b>A sample mean</b> (the average of n) → z = (x̄ − μ)/(σ/√n). Look for words like "a sample of", "the mean of their", "average of the n".']],
+ worked:[
+  wProb({title:'Brand new car (PPT)',text:'The average cost per household of owning a brand new car is 5,000, sd 1,230. If 40 households are randomly selected, find the probability that the sample mean is more than 5,350.',mu:5000,sd:1230,n:40,region:[5350,null],given:['μ = 5,000','σ = 1,230','n = 40','x̄ = 5,350'],find:'P(x̄ > 5,350)',say:'There is a %P chance that the mean of 40 households is more than 5,350.',src:'PPT'}),
+  wProb({title:'LTO car ages (PPT)',text:'The average age of a car registered in LTO is 120 months, sd 20. If 35 cars are selected, find the probability that the mean age is between 115 and 129 months.',mu:120,sd:20,n:35,region:[115,129],given:['μ = 120','σ = 20','n = 35','x̄₁ = 115, x̄₂ = 129'],find:'P(115 < x̄ < 129)',say:'%P of samples of 35 cars have a mean age from 115 to 129 months.',src:'PPT'}),
+  wProb({title:'Fresh milk, one person (PPT a)',text:'A person drinks 18 liters of fresh milk a month on average, sd 4.5. Find the probability that a person selected at random drinks more than 16 liters.',mu:18,sd:4.5,region:[16,null],given:['μ = 18','σ = 4.5','X = 16 (one person, so no √n)'],find:'P(X > 16)',src:'PPT'}),
+  wProb({title:'Fresh milk, sample of 32 (PPT b)',text:'Same data. If 32 people are selected, find the probability that their mean is more than 16 liters.',mu:18,sd:4.5,n:32,region:[16,null],given:['μ = 18','σ = 4.5','n = 32','x̄ = 16'],find:'P(x̄ > 16)',say:'The sample answer (%P) is higher than for one person, because averages stay close to 18.',src:'PPT'})]},
+binom:{notes:[
+ ['Binomial recap','A binomial experiment has a fixed number of trials n, each trial is success or failure, the chance of success p is the same every time, and trials are independent. X = number of successes. Example: pick 250 drivers, count how many have a professional license.'],
+ ['Why approximate?','Exact binomial for "20 or more out of 300" means adding 281 terms. The normal curve gives nearly the same answer in a few lines. The CLT says that as n grows, the binomial looks more and more normal.'],
+ ['Conditions','<div class="big">np ≥ 5 and nq ≥ 5</div>"≥" means "at least". If p is tiny or n is small, the bars are lopsided and the curve won\'t fit.'],
+ ['Mean and sd','<div class="big">μ = np   σ = √(npq)   q = 1 − p</div>'],
+ ['Continuity correction (the ±0.5)',`Counts are whole numbers, drawn as bars. The bar for 30 covers 29.5 to 30.5. The curve is continuous, so we move to the bar edges.${graph({mu:35,sd:5.49,bars:{on:[30,30]},regions:[[29.5,30.5]],showZ:false})}<b>Memory trick</b>: words with <b>"or"</b> (or more, or fewer, at least, at most) <b>include</b> the number, so you stretch to cover its whole bar. Words with <b>"than"</b> (more than, fewer than) <b>exclude</b> it, so you start past its bar.<table class="tbl" style="margin-top:8px"><tr><th>Binomial</th><th>Normal</th><th>Why</th></tr><tr><td>X = a</td><td>a − 0.5 &lt; X &lt; a + 0.5</td><td>just the one bar</td></tr><tr><td>X ≥ a</td><td>X &gt; a − 0.5</td><td>include a</td></tr><tr><td>X &gt; a</td><td>X &gt; a + 0.5</td><td>skip a</td></tr><tr><td>X ≤ a</td><td>X &lt; a + 0.5</td><td>include a</td></tr><tr><td>X &lt; a</td><td>X &lt; a − 0.5</td><td>skip a</td></tr></table>`],
+ ['How to solve (PPT order)','1) Let p = …, q = …, n = …. 2) Check np ≥ 5 and nq ≥ 5. 3) μ = np, σ = √(npq). 4) Write the binomial notation and the corrected normal notation. 5) z, table, rule. 6) Answer.']],
+ worked:[
+  wProb({title:'LTO professional license (PPT)',text:'LTO reported that 14% of Filipino drivers have a professional driver\'s license. If 250 drivers are selected at random, find the probability that exactly 30 have one.',mu:35,sd:Math.sqrt(250*.14*.86),region:[29.5,30.5],binom:{n:250,p:.14,from:'P(X = 30)',to:'P(29.5 < X < 30.5)',why:'"Exactly 30" is one bar, from 29.5 to 30.5.',on:[30,30]},given:['p = 0.14 (drivers with a professional license)','q = 1 − 0.14 = 0.86','n = 250'],find:'P(X = 30)',say:'There is about a %P chance that exactly 30 of the 250 have a professional license.',src:'PPT'}),
+  wProb({title:'Rotary Club (PPT)',text:'Of the members of the Rotary Club, 8% are single. If 300 Rotarians are selected, find the probability that 20 or more are single.',mu:24,sd:Math.sqrt(300*.08*.92),region:[19.5,null],binom:{n:300,p:.08,from:'P(X ≥ 20)',to:'P(X > 19.5)',why:'"20 or more" includes 20, so start at the left edge of its bar, 19.5.',on:[20,999]},given:['p = 0.08 (single)','q = 0.92','n = 300'],find:'P(X ≥ 20)',say:'The probability that 20 or more are single is %P. (The slide shows 0.8815; the sum 0.3315 + 0.5 is 0.8315.)',src:'PPT'}),
+  wProb({title:'EEE handkerchiefs (PPT)',text:'A company producing EEE handkerchiefs believes it has a 20% market share. In a survey of 3,000 buyers, 660 preferred their brand. If 20% is correct, find the probability of 660 or fewer preferring EEE.',mu:600,sd:Math.sqrt(480),region:[null,660.5],binom:{n:3000,p:.2,from:'P(X ≤ 660)',to:'P(X < 660.5)',why:'"660 or fewer" includes 660, so go to the right edge of its bar.'},given:['p = 0.20 (prefer EEE)','q = 0.80','n = 3,000'],find:'P(X ≤ 660)',say:'If the 20% share is true, getting 660 or fewer happens %P of the time. So 660 is not surprising.',src:'PPT'}),
+  wProb({title:'EEE, 660 or more',text:'Same survey. Find the probability that 660 or more prefer EEE.',mu:600,sd:Math.sqrt(480),region:[659.5,null],binom:{n:3000,p:.2,from:'P(X ≥ 660)',to:'P(X > 659.5)',why:'"660 or more" includes 660, so start at its left edge, 659.5.'},given:['p = 0.20, q = 0.80, n = 3,000'],find:'P(X ≥ 660)',say:'Only %P. If the 20% share were true, 660 or more would be rare, which hints the real share may be higher.'})]},
+ciz:{notes:[
+ ['What estimation is','Estimation is guessing a population <b>parameter</b> (like μ or p) from a sample. The formula we use (like x̄) is the <b>estimator</b>. The number it gives is the <b>estimate</b>.'],
+ ['Point estimate','One single number. The best point estimate of μ is x̄. It is almost never exactly right, so we add a margin of error.'],
+ ['Interval estimate and confidence interval','A range of values that probably contains the parameter. When you attach a confidence level (like 95%) to it, it is a <b>confidence interval</b>.'],
+ ['What "95% confident" really means','If you repeated the sampling many times and built an interval each time, about 95% of those intervals would contain the true μ. It does NOT mean μ moves around.'],
+ ['A good estimator','<ul><li><b>Unbiased</b>: on average it hits the parameter exactly.</li><li><b>Consistent</b>: bigger sample → closer to the parameter.</li><li><b>Relatively efficient</b>: of two unbiased ones, the one with smaller variance.</li></ul>'],
+ ['Where 1.645, 1.960, 2.576 come from','The confidence level is the middle area. Half of it is the table area. 95% → 0.4750 → z = 1.96. 99% → 0.4950 → z = 2.575 (2.576). 90% → 0.4500 → 1.645.'],
+ ['The formula','<div class="big">x̄ − z(σ/√n) &lt; μ &lt; x̄ + z(σ/√n)</div>E = z(σ/√n) is the maximum error of estimate. Use z when σ is known, or when n ≥ 30 (then s replaces σ).'],
+ ['How to solve','1) Given: x̄, σ or s, n, confidence. 2) z or t? 3) Critical value. 4) σ/√n. 5) E. 6) x̄ ± E. 7) Sentence.']],
+ worked:[
+  wCI({title:'Flat TV (PPT)',text:'A survey of 30 households found the mean age of a flat TV is 4 years. Assuming σ = 0.75 year, find the best point estimate and the 99% confidence interval of the population mean.',kind:'z',known:true,xb:4,sd:.75,n:30,cl:99,given:['n = 30','x̄ = 4 years (this is the best point estimate)','σ = 0.75','99% confidence'],find:'99% CI for μ',what:'mean age of flat TVs',src:'PPT'}),
+  wCI({title:'Clothing spending (PPT)',text:'A sample of 40 young professionals found mean monthly clothing spending of 500.00, sd 80.00. Find the best point estimate and the 95% confidence interval.',kind:'z',xb:500,sd:80,n:40,cl:95,given:['n = 40','x̄ = 500.00 (best point estimate)','s = 80.00','95% confidence'],find:'95% CI for μ',what:'mean monthly clothing spending',src:'PPT'}),
+  wCI({title:'Makati secretaries (PPT)',text:'Find the 90% CI for incomes (thousand pesos) of executive secretaries from a random sample of 30.',kind:'z',xb:18.3333,sd:4.069,n:30,cl:90,given:['n = 30 values (see PPT table)','90% confidence'],find:'90% CI for μ',what:'mean income of executive secretaries (thousands)',pre:[{t:'Compute x̄ and s from the data',why:'Use your calculator\'s STAT mode: enter all 30 values, then read x̄ and sx (the sample sd).',work:['Σx = 550 → x̄ = 550/30 = 18.33','s = 4.07']}],src:'PPT'})]},
+cit:{notes:[
+ ['Why t?','When σ is unknown we use s. With a small sample, s can be off, so a z-interval would be too narrow. The t-distribution makes the interval a bit wider to cover that extra uncertainty.'],
+ ['Properties of t','Bell-shaped and symmetric about 0, but flatter with thicker tails than z. Its shape depends on the degrees of freedom. As df grows, t gets closer to z. At df = ∞ it equals z.'],
+ ['Degrees of freedom','<div class="big">df = n − 1</div>'],
+ ['Decision flow','<table class="tbl"><tr><th>Situation</th><th>Use</th></tr><tr><td>σ known (any n)</td><td>z</td></tr><tr><td>σ unknown, n ≥ 30</td><td>z with s</td></tr><tr><td>σ unknown, n &lt; 30</td><td>t, df = n − 1</td></tr></table>'],
+ ['Computing s by hand','<div class="big">s = √[ Σ(x − x̄)² / (n − 1) ]</div>Find x̄, subtract it from each value, square, add them up, divide by n − 1, square root. On the calculator use <b>sx</b> (or σn−1), not σx.'],
+ ['How to solve','1) Check σ unknown and n &lt; 30. 2) df = n − 1. 3) t from the table. 4) s/√n. 5) E = t·s/√n. 6) x̄ ± E.']],
+ worked:[
+  wCI({title:'San Carlos College (PPT)',text:'A study of 19 students of San Carlos College showed a mean travel distance of 10.2 km, sd 2.3 km. Find the 99% confidence interval of the true mean.',kind:'t',xb:10.2,sd:2.3,n:19,cl:99,given:['n = 19','x̄ = 10.2 km','s = 2.3 km (sample sd, σ unknown)','99% confidence'],find:'99% CI for μ',what:'mean distance traveled',src:'PPT'}),
+  wCI({title:'Family sizes (PPT)',text:'A random sample of families in a street gave sizes 5, 6, 7, 4, 3, 8, 2 and 9. Find the 95% confidence interval of the mean.',kind:'t',xb:5.5,sd:sdev([5,6,7,4,3,8,2,9]),n:8,cl:95,given:['data: 5, 6, 7, 4, 3, 8, 2, 9','n = 8','95% confidence'],find:'95% CI for μ',what:'mean family size',
+   pre:[{t:'Compute x̄',why:'Add the values and divide by n.',work:['Σx = 5+6+7+4+3+8+2+9 = 44','x̄ = 44/8 = 5.5']},
+    {t:'Compute s (by hand)',why:'Subtract x̄ from each value, square, add, divide by n − 1, take the root.',work:['(x − 5.5)²: 0.25, 0.25, 2.25, 2.25, 6.25, 6.25, 12.25, 12.25','Σ = 42','s = √(42/7) = √6 = 2.449']}],src:'PPT'})]},
+cip:{notes:[
+ ['Symbols','<ul><li>p = population proportion (unknown)</li><li>p̂ = sample proportion = X/n</li><li>X = how many in the sample have the trait</li><li>n = sample size</li><li>q̂ = 1 − p̂</li></ul>'],
+ ['The formula','<div class="big">p̂ − z√(p̂q̂/n) &lt; p &lt; p̂ + z√(p̂q̂/n)</div>E = z√(p̂q̂/n) is the bound on the error of estimate. Proportions always use z.'],
+ ['Reading the answer','A proportion is between 0 and 1. 0.349 &lt; p &lt; 0.451 means between 34.9% and 45.1%.'],
+ ['How to solve','1) p̂ = X/n, q̂ = 1 − p̂. 2) z. 3) √(p̂q̂/n). 4) E. 5) p̂ ± E. 6) Sentence.']],
+ worked:[
+  wCI({title:'Engineering applicants (PPT)',text:'A sample of 350 engineering applicants included 140 women. Find the 95% confidence interval of the true proportion of women.',kind:'p',X:140,n:350,cl:95,given:['n = 350','X = 140 women','95% confidence'],find:'95% CI for p',what:'proportion of women applicants',src:'PPT'}),
+  wCI({title:'Voters for candidate B (PPT)',text:'A random sample of 420 voters produced 231 in favor of candidate B. Estimate the fraction favoring B and place a bound on the error using 99% confidence.',kind:'p',X:231,n:420,cl:99,given:['n = 420','X = 231','99% confidence'],find:'p̂, E, and the 99% CI',what:'proportion of voters favoring B',src:'PPT'})]},
+n:{notes:[
+ ['Where the formula comes from','Start with E = z·σ/√n and solve for n: √n = zσ/E, so <div class="big">n = (zσ/E)²</div>For proportions, E = z√(pq/n) gives <div class="big">n = p̂q̂(z/E)²</div>'],
+ ['What each piece does','Higher confidence (bigger z) → bigger n. Bigger σ (more spread) → bigger n. Smaller E (more precise) → much bigger n, because E is squared. Halving E makes n 4 times as large.'],
+ ['When there\'s no p','Use p = 0.5. p × q is largest at 0.5 × 0.5 = 0.25, so you get the biggest, safest sample size.'],
+ ['Round up, always','17.64 → 18. 600.25 → 601. Even 1840.02 → 1841. You can\'t survey part of a person, and rounding down misses the target.'],
+ ['How to solve','1) Mean (σ given) or proportion (percent given)? 2) z. 3) E as a decimal (3% = 0.03). 4) Substitute. 5) Round up.']],
+ worked:[
+  wN({title:'College dean (PPT)',text:'A college dean wants to estimate the average hours students spend on homework per week. A previous study gives sd 4.5 hours. How large a sample is needed to be 95% confident the estimate is within 2.1 hours?',kind:'mean',sd:4.5,E:2.1,cl:95,given:['σ = 4.5','E = 2.1','95% → z = 1.96'],src:'PPT'}),
+  wN({title:'Professors with laptops (PPT)',text:'A researcher wants to estimate, with 99% confidence, the proportion of professors with laptops. A previous study shows 48%. He wants to be within 3%. Find the minimum sample size.',kind:'prop',p:.48,E:.03,cl:99,given:['p̂ = 0.48, q̂ = 0.52','E = 3% = 0.03','99% → z = 2.576'],src:'PPT'}),
+  wN({title:'Students who surf the internet (PPT)',text:'How large a sample is needed to estimate the proportion of college students who surf the internet daily within 4% with 95% confidence?',kind:'prop',E:.04,cl:95,given:['no previous estimate → p = 0.5','E = 0.04','95% → z = 1.96'],src:'PPT'})]}
+};
+const FORMULAS=`<table class="tbl fs"><tr><th>Topic</th><th>Formula</th><th>Use when</th></tr>
+<tr><td>z-score</td><td>z = (X − μ)/σ</td><td>one value</td></tr><tr><td>From z to X</td><td>X = μ + zσ</td><td>cutoffs</td></tr>
+<tr><td>Pearson's Index</td><td>PI = 3(x̄ − median)/s</td><td>normal if −1 ≤ PI ≤ 1</td></tr>
+<tr><td>Areas</td><td>tail 0.5 − A · big side 0.5 + A</td><td>table gives 0 to z</td></tr>
+<tr><td>Sample mean</td><td>z = (x̄ − μ)/(σ/√n)</td><td>mean of n values</td></tr>
+<tr><td>Binomial → normal</td><td>μ = np, σ = √(npq), ±0.5</td><td>np ≥ 5 and nq ≥ 5</td></tr>
+<tr><td>CI mean (z)</td><td>x̄ ± z(σ/√n)</td><td>σ known or n ≥ 30</td></tr>
+<tr><td>CI mean (t)</td><td>x̄ ± t(s/√n), df = n − 1</td><td>σ unknown, n &lt; 30</td></tr>
+<tr><td>CI proportion</td><td>p̂ ± z√(p̂q̂/n)</td><td>p̂ = X/n</td></tr>
+<tr><td>Sample size (mean)</td><td>n = (zσ/E)²</td><td>round up</td></tr>
+<tr><td>Sample size (prop.)</td><td>n = p̂q̂(z/E)²</td><td>p = 0.5 if unknown</td></tr>
+<tr><td>Critical z</td><td>90% 1.645 · 95% 1.960 · 99% 2.576</td><td></td></tr></table>`;
+
+// ===== Z-Lab app: navigation, lessons, test engine, handwriting pad =====
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const plain=h=>{const d=document.createElement('div');d.innerHTML=h;return d.textContent.replace(/\s+/g,' ').trim()};
+const store={get(k,d){try{const v=localStorage.getItem('zlab:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('zlab:'+k,JSON.stringify(v))}catch(e){}}};
+const LV=['easy','medium','hard'],LVN={easy:'Easy',medium:'Medium',hard:'Hard'},SECT=['learn','examples','how','test'],SECTN={learn:'1 · Learn',examples:'2 · Worked solutions',how:'3 · How to solve',test:'4 · Test yourself'};
+let S={mode:store.get('mode','practice'),view:store.get('view','home'),topic:store.get('topic',0),sect:'learn',level:'easy',q:0,sets:store.get('sets',{})};
+let done=store.get('done',{}); // key -> 'first' | 'solved' | 'shown'
+const qstate={}; // runtime: key -> {strikes, status, vals, wrong:[]}
+const pads={};   // key -> {strokes, transcript}
+let SAMPLE=null,SAMPLE_READY=false;
+try{window.claude?.use?.('sample').then(s=>{SAMPLE=s;SAMPLE_READY=true}).catch(()=>{SAMPLE_READY=true})}catch(e){SAMPLE_READY=true}
+
+// ---------- question bank ----------
+const cache={};
+function questions(ti,lv){const set=S.sets[ti+lv]||0,k=ti+'|'+lv+'|'+set;if(cache[k])return cache[k];
+  const T=TOPICS[ti],tpl=T.gen[lv],r=RNG(hash(T.id+lv+set)),out=[];
+  for(let i=0;i<10;i++){let q;for(let tries=0;tries<5&&!q;tries++){try{q=tpl[i%tpl.length](r)}catch(e){console.error(e)}}out.push(q)}
+  return cache[k]=out}
+const qkey=(ti,lv,i)=>`${TOPICS[ti].id}|${lv}|${S.sets[ti+lv]||0}|${i}`;
+const topicDone=ti=>{let n=0;LV.forEach(lv=>{for(let i=0;i<10;i++)if(done[qkey(ti,lv,i)])n++});return n};
+
+// ---------- top-level render ----------
+function save(){store.set('mode',S.mode);store.set('view',S.view);store.set('topic',S.topic);store.set('sets',S.sets)}
+function render(){save();renderNav();document.querySelectorAll('#mode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===S.mode));
+  if(S.mode==='study'){S.view==='home'?renderStudyHome():renderStudy(TOPICS[S.topic])}else{S.view==='home'?renderHome():renderTopic()}}
+document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{S.mode=b.dataset.mode;render();scrollTo(0,0)});
+let COVER=store.get('cover',false);
+function renderStudyHome(){
+  let h=`<section class="card hero"><div class="eyebrow">Study mode</div><h2>Read the full lesson, then watch every problem get solved.</h2>
+   <p>Each topic has longer notes and the PPT problems worked out line by line. Every step shows <b>what to write on your paper</b> and <b>why you do it</b>. Turn on <b>Cover the work</b> to hide the answers and reveal one step at a time, like a flashcard.</p></section>
+   <section class="card"><div class="eyebrow">Formula sheet</div><div class="gbox">${FORMULAS}</div></section><div class="grid">`;
+  let unit='';TOPICS.forEach((t,i)=>{if(t.unit!==unit){unit=t.unit;h+=`<div class="gridunit eyebrow">${unit}</div>`}h+=`<button class="tcard" data-t="${i}"><span class="tnum">${i+1}</span><span class="tname">${t.name}</span><span class="mute small">${STUDY[t.id].notes.length} notes · ${STUDY[t.id].worked.length} worked solutions</span></button>`});
+  $('main').innerHTML=h+'</div>';$('main').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.view='topic';S.topic=+b.dataset.t;render();scrollTo(0,0)})}
+function renderStudy(T){
+  const D=STUDY[T.id];
+  let h=`<div class="thead"><div class="eyebrow">Study · ${T.unit} · Topic ${S.topic+1} of ${TOPICS.length}</div><h2>${T.name}</h2></div>
+   <div class="toc">${D.notes.map((n,i)=>`<a href="#" data-go="n${i}">${n[0]}</a>`).join('')}<a href="#" data-go="ws">Worked solutions (${D.worked.length})</a></div>`;
+  h+=D.notes.map((n,i)=>`<section class="card" id="n${i}"><div class="eyebrow">${n[0]}</div><div class="prose">${n[1]}</div></section>`).join('');
+  h+=`<div class="row between" id="ws"><h3>Worked solutions</h3><label class="tog"><input type="checkbox" id="cover" ${COVER?'checked':''}> Cover the work (try first)</label></div>`;
+  h+=D.worked.map((w,i)=>`<section class="card sheet"><div class="eyebrow">Solution ${i+1} · ${w.title}</div><p class="qtext">${w.text}</p>
+    <div class="stps">${w.steps.map((s,k)=>`<div class="stp"><div class="snum">${k+1}</div><div class="sbody"><h4>${s.t}</h4><p class="why">${s.why}</p>${s.work&&s.work.filter(Boolean).length?`<div class="work ${COVER?'hid':''}" tabindex="0" role="button" aria-label="Reveal step">${s.work.filter(Boolean).map(l=>`<div>${l}</div>`).join('')}</div>`:''}${s.g?`<div class="gbox">${graph(s.g)}</div>`:''}</div></div>`).join('')}</div>
+    <div class="ans ${COVER?'hid':''}" tabindex="0" role="button">Answer: <b>${w.answer}</b></div></section>`).join('');
+  h+=`<div class="row end"><button class="sec" id="toprac">Practice this topic →</button>${S.topic<TOPICS.length-1?'<button class="pri" id="nexttopic">Next topic →</button>':''}</div>`;
+  $('main').innerHTML=h;
+  $('main').querySelectorAll('[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();$(a.dataset.go).scrollIntoView({block:'start'})});
+  $('main').querySelectorAll('.hid').forEach(el=>{const show=()=>el.classList.remove('hid');el.onclick=show;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show()}}});
+  $('cover').onchange=e=>{COVER=e.target.checked;store.set('cover',COVER);const y=$('ws').getBoundingClientRect().top;renderStudy(T);scrollBy(0,$('ws').getBoundingClientRect().top-y)};
+  $('toprac').onclick=()=>{S.mode='practice';S.sect='test';S.level='easy';S.q=0;render();scrollTo(0,0)};
+  if($('nexttopic'))$('nexttopic').onclick=()=>{S.topic++;render();scrollTo(0,0)}}
+function renderNav(){
+  let h=`<button class="chip ${S.view==='home'?'on':''}" data-home="1">Overview</button>`;
+  let unit='';TOPICS.forEach((t,i)=>{if(t.unit!==unit){unit=t.unit;h+=`<span class="navunit">${unit}</span>`}
+    h+=`<button class="chip ${S.view==='topic'&&S.topic===i?'on':''}" data-t="${i}">${i+1}. ${t.name}<span class="cnt">${topicDone(i)}/30</span></button>`});
+  $('nav').innerHTML=h;
+  $('nav').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.view='topic';S.topic=+b.dataset.t;S.sect='learn';S.q=0;render();scrollTo(0,0)});$('nav').querySelectorAll('.cnt').forEach(c=>c.hidden=S.mode==='study');
+  $('nav').querySelector('[data-home]').onclick=()=>{S.view='home';render()};
+  const on=$('nav').querySelector('.on');on&&on.scrollIntoView({block:'nearest',inline:'center'})}
+
+function renderHome(){
+  const total=TOPICS.reduce((s,_,i)=>s+topicDone(i),0);
+  let h=`<section class="card hero"><div class="eyebrow">ECON3169 · Finals reviewer</div><h2>Learn it, see it solved, then solve it yourself.</h2>
+  <p>Each topic follows the same path: <b>Learn</b> the idea in plain words, read the <b>worked solutions</b> from your PPT, follow the <b>how-to-solve</b> checklist, then <b>test yourself</b> on 30 questions (10 easy, 10 medium, 10 hard). Miss a question 3 times and the full solution appears. Use <b>Write by hand</b> under any question to solve with your mouse or finger, then turn it into text.</p>
+  <div class="meter"><span style="width:${total/3}%"></span></div><p class="mute">${total} of 300 questions solved</p></section><div class="grid">`;
+  let unit='';TOPICS.forEach((t,i)=>{if(t.unit!==unit){unit=t.unit;h+=`<div class="gridunit eyebrow">${unit}</div>`}const d=topicDone(i);
+    h+=`<button class="tcard" data-t="${i}"><span class="tnum">${i+1}</span><span class="tname">${t.name}</span><span class="meter sm"><span style="width:${d/30*100}%"></span></span><span class="mute small">${d}/30 solved</span></button>`});
+  h+=`</div><section class="card"><div class="eyebrow">Exam reminders</div><ul>
+   <li>Always draw the curve and shade before touching the table.</li><li>The z-table gives the area from 0 to z. Tails are 0.5 − A.</li>
+   <li>Sample means: divide σ by √n. Binomial: check np ≥ 5 and nq ≥ 5, then use ±0.5.</li><li>CI: z for σ known or n ≥ 30, t (df = n − 1) for σ unknown and n &lt; 30.</li><li>Sample size: always round up.</li></ul></section>`;
+  $('main').innerHTML=h;$('main').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{S.view='topic';S.topic=+b.dataset.t;S.sect='learn';render();scrollTo(0,0)})}
+
+function renderTopic(){
+  const T=TOPICS[S.topic];
+  let h=`<div class="thead"><div class="eyebrow">${T.unit} · Topic ${S.topic+1} of ${TOPICS.length}</div><h2>${T.name}</h2></div>
+   <div class="steps" role="tablist">${SECT.map(s=>`<button role="tab" aria-selected="${S.sect===s}" data-s="${s}">${SECTN[s]}</button>`).join('')}</div><div id="sect"></div>`;
+  $('main').innerHTML=h;$('main').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{S.sect=b.dataset.s;renderTopic()});
+  ({learn:renderLearn,examples:renderExamples,how:renderHow,test:renderTest})[S.sect](T,$('sect'))}
+const nextBtn=(label,sect)=>`<div class="row end"><button class="pri" data-next="${sect}">${label} →</button></div>`;
+function wireNext(el){el.querySelectorAll('[data-next]').forEach(b=>b.onclick=()=>{S.sect=b.dataset.next;renderTopic();$('main').scrollIntoView()})}
+
+function renderLearn(T,el){
+  el.innerHTML=T.learn.map(([h,t])=>`<section class="card"><div class="eyebrow">${h}</div><div class="prose">${t}</div></section>`).join('')+(T.play?`<section class="card"><div class="eyebrow">Play with it</div><div id="pg"></div></section>`:'')+`<div class="row between"><button class="ghost" id="tostudy">Read the full study notes</button><button class="pri" data-next="examples">See worked solutions →</button></div>`;
+  if(T.play)PLAY[T.play]($('pg'));wireNext(el);$('tostudy').onclick=()=>{S.mode='study';render();scrollTo(0,0)}}
+
+function renderExamples(T,el){
+  el.innerHTML=T.examples.map((x,i)=>`<section class="card"><div class="eyebrow">Example ${i+1} · ${x.title}</div><p class="qtext">${x.text}</p>${x.graph?`<div class="gbox">${graph(x.graph)}</div>`:''}
+    <ol class="sol" id="ex${i}"></ol><div class="row"><button class="sec" data-ex="${i}">Show next step</button><button class="ghost" data-all="${i}">Show all</button></div><div class="ans" id="exa${i}" hidden>Answer: <b>${x.answer}</b></div></section>`).join('')+nextBtn('How to solve','how');
+  const shown={};
+  const step=(i,all)=>{const x=T.examples[i];shown[i]=all?x.steps.length:(shown[i]||0)+1;$('ex'+i).innerHTML=x.steps.slice(0,shown[i]).map(s=>`<li>${s}</li>`).join('');
+    if(shown[i]>=x.steps.length){$('exa'+i).hidden=false;el.querySelector(`[data-ex="${i}"]`).hidden=true;el.querySelector(`[data-all="${i}"]`).hidden=true}};
+  el.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>step(+b.dataset.ex));el.querySelectorAll('[data-all]').forEach(b=>b.onclick=()=>step(+b.dataset.all,true));wireNext(el)}
+
+function renderHow(T,el){
+  el.innerHTML=`<section class="card"><div class="eyebrow">The routine</div><ol class="sol big-ol">${T.how.steps.map(s=>`<li>${s}</li>`).join('')}</ol></section>
+   <section class="card"><div class="eyebrow">Formula to remember</div><div class="big">${T.how.formula}</div></section>
+   <section class="card warn"><div class="eyebrow">Common mistakes</div><ul>${T.how.mistakes.map(s=>`<li>${s}</li>`).join('')}</ul></section>`+nextBtn('Start the test','test');wireNext(el)}
+
+// ---------- test ----------
+function renderTest(T,el){
+  const qs=questions(S.topic,S.level);
+  const lvCount=lv=>{let n=0;for(let i=0;i<10;i++)if(done[qkey(S.topic,lv,i)])n++;return n};
+  el.innerHTML=`<div class="row between"><div class="seg">${LV.map(lv=>`<button aria-pressed="${S.level===lv}" data-lv="${lv}">${LVN[lv]} <span class="cnt">${lvCount(lv)}/10</span></button>`).join('')}</div><button class="ghost" id="newset">New set of questions</button></div>
+   <div class="dots">${qs.map((_,i)=>{const d=done[qkey(S.topic,S.level,i)];return`<button class="qd ${i===S.q?'cur':''} ${d||''}" data-q="${i}" aria-label="Question ${i+1}">${i+1}</button>`}).join('')}</div><div id="qbox"></div>`;
+  el.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{S.level=b.dataset.lv;S.q=0;renderTest(T,el)});
+  el.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{S.q=+b.dataset.q;renderTest(T,el)});
+  $('newset').onclick=()=>{S.sets[S.topic+S.level]=(S.sets[S.topic+S.level]||0)+1;S.q=0;save();renderTest(T,el)};
+  renderQ(T,qs[S.q],$('qbox'),()=>{renderNav();const qs2=el.querySelector('.dots');qs2&&qs2.querySelectorAll('[data-q]').forEach((b,i)=>{const d=done[qkey(S.topic,S.level,i)];b.className=`qd ${i===S.q?'cur':''} ${d||''}`});el.querySelectorAll('[data-lv] .cnt').forEach((c,j)=>c.textContent=lvCount(LV[j])+'/10')},()=>{if(S.q<9){S.q++;renderTest(T,el)}else{const i=LV.indexOf(S.level);if(i<2){S.level=LV[i+1];S.q=0;renderTest(T,el)}else if(S.topic<TOPICS.length-1){S.topic++;S.sect='learn';S.level='easy';S.q=0;render()}}scrollTo({top:$('main').offsetTop-10})})}
+
+function parseNum(s){if(s==null)return NaN;s=String(s).trim().replace(/[₱\s]/g,'').replace(/,/g,'');const pct=s.endsWith('%');if(pct)s=s.slice(0,-1);let v=parseFloat(s);return pct?v/100:v}
+function normVal(v,f,raw){if(isNaN(v))return v;if(f.type==='prob'&&v>1&&v<=100)return v/100;if(f.type==='pct'&&f.ans>=1&&v>0&&v<1&&!String(raw).includes('%'))return v*100;if(f.type==='pct'&&String(raw).includes('%'))return v*100;return v}
+
+function renderQ(T,q,box,onChange,onNext){
+  if(!q){box.innerHTML='<div class="card">This question could not be made. Press "New set of questions".</div>';return}
+  const key=qkey(S.topic,S.level,S.q),st=qstate[key]||(qstate[key]={strikes:0,status:done[key]?'done':'open',vals:[],wrong:[]});
+  const isMC=!!q.choices;
+  box.innerHTML=`<section class="card qcard"><div class="row between"><div class="eyebrow">${LVN[S.level]} · Question ${S.q+1} of 10</div><div class="lives" title="Tries left">${[0,1,2].map(k=>`<span class="dot ${k<3-st.strikes?'':'off'}"></span>`).join('')}</div></div>
+    <div class="qtext">${q.text}</div>${q.graph?`<div class="gbox" id="g">${graph(q.graph)}</div>`:''}
+    ${isMC?`<div class="choices">${q.choices.map((c,i)=>`<button class="choice" data-c="${i}">${esc(c)}</button>`).join('')}</div>`:
+      `<div class="fields">${q.fields.map((f,i)=>`<label class="field"><span>${f.label}</span><input type="text" id="f${i}" inputmode="decimal" autocomplete="off" value="${esc(st.vals[i]??'')}"></label>`).join('')}<button class="pri" id="chk">Check</button></div>`}
+    <div id="fb" aria-live="polite"></div>
+    <div class="row"><button class="ghost" id="padbtn" aria-expanded="false">✎ Write by hand</button><button class="ghost" id="giveup">Show me how</button></div>
+    <div id="padwrap" hidden></div></section>`;
+  const fb=$('fb'),gEl=$('g');
+  const lives=()=>box.querySelectorAll('.lives .dot').forEach((d,k)=>d.classList.toggle('off',k>=3-st.strikes));
+  const finish=(how)=>{st.status='done';if(!done[key]||how==='first'){done[key]=how;store.set('done',done)}
+    if(gEl)gEl.innerHTML=graph(q.after||q.graph);box.querySelectorAll('input,.choice,#chk').forEach(e=>e.disabled=true);$('giveup').hidden=true;onChange()};
+  const showSol=(title,cls)=>{const ansTxt=isMC?q.choices[q.correct]:q.fields.map(f=>`${f.label}: ${typeof f.ans==='number'?nf(f.ans,4):f.ans}`).join(' · ');
+    fb.innerHTML=`<div class="fb ${cls}"><b>${title}</b><div class="anskey">Answer: ${esc(ansTxt)}</div><div class="eyebrow" style="margin-top:8px">How to solve it</div><ol class="sol">${q.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div><div class="row end"><button class="pri" id="nq">Next question →</button></div>`;
+    $('nq').onclick=onNext;if(isMC)box.querySelectorAll('.choice')[q.correct].classList.add('right')};
+  if(st.status==='done'){showSol(done[key]==='shown'?'Solution':'You solved this','ok');finish(done[key])}
+  // live graph
+  if(!isMC&&q.live&&gEl){const upd=()=>{const v=q.fields.map((f,i)=>normVal(parseNum($('f'+i).value),f,$('f'+i).value));if(st.status!=='done'&&v.some(x=>!isNaN(x)))gEl.innerHTML=graph(q.live(v))};q.fields.forEach((_,i)=>$('f'+i).addEventListener('input',upd));if(st.vals.length)upd()}
+  if(!isMC)q.fields.forEach((_,i)=>$('f'+i).addEventListener('input',e=>st.vals[i]=e.target.value));
+  const miss=(msg)=>{st.strikes++;lives();
+    if(st.strikes>=3){showSol('3 misses. Here is the full solution. Read it, then try a new set later.','rev');finish('shown');return}
+    fb.innerHTML=`<div class="fb no"><b>Not yet.</b> ${msg||''} ${3-st.strikes} ${3-st.strikes===1?'try':'tries'} left.<div class="hint">Hint: ${q.hint||'Go back to the how-to-solve steps.'}</div></div>`};
+  if(isMC){box.querySelectorAll('.choice').forEach(b=>{const i=+b.dataset.c;if(st.wrong.includes(i)){b.classList.add('wrong');b.disabled=true}
+    b.onclick=()=>{if(st.status==='done')return;if(i===q.correct){b.classList.add('right');showSol(st.strikes?'Correct.':'Correct on the first try.','ok');finish(st.strikes?'solved':'first')}else{st.wrong.push(i);b.classList.add('wrong');b.disabled=true;miss()}}})}
+  else{const check=()=>{if(st.status==='done')return;const vals=q.fields.map((f,i)=>normVal(parseNum($('f'+i).value),f,$('f'+i).value));
+      if(vals.some(isNaN)){fb.innerHTML=`<div class="fb no">Type a number in ${q.fields.length>1?'every box':'the box'} first.</div>`;return}
+      const ok=q.fields.map((f,i)=>Math.abs(vals[i]-f.ans)<=f.tol+1e-9);
+      q.fields.forEach((f,i)=>$('f'+i).classList.toggle('bad',!ok[i]));q.fields.forEach((f,i)=>$('f'+i).classList.toggle('good',ok[i]));
+      if(ok.every(Boolean)){showSol(st.strikes?'Correct.':'Correct on the first try.','ok');finish(st.strikes?'solved':'first');return}
+      let msg='';q.fields.forEach((f,i)=>{if(!ok[i]&&f.type==='n'&&f.raw&&vals[i]>=Math.floor(f.raw)-.01&&vals[i]<f.ans)msg='Close. Sample size is always rounded UP.'});
+      if(!msg&&q.fields.length>1)msg=q.fields.filter((f,i)=>ok[i]).map(f=>f.label).join(', ')?`${q.fields.filter((f,i)=>ok[i]).map(f=>f.label).join(', ')} ${q.fields.filter((f,i)=>ok[i]).length>1?'are':'is'} right.`:'';
+      if(!msg&&q.fields.some(f=>f.type==='prob')&&vals.some(v=>v<0||v>1))msg='A probability is between 0 and 1.';
+      miss(msg)};
+    $('chk').onclick=check;q.fields.forEach((_,i)=>$('f'+i).addEventListener('keydown',e=>{if(e.key==='Enter')check()}))}
+  $('giveup').onclick=()=>{if(st.status==='done')return;st.strikes=3;lives();showSol('Here is how to solve it.','rev');finish('shown')};
+  $('padbtn').onclick=()=>{const w=$('padwrap');w.hidden=!w.hidden;$('padbtn').setAttribute('aria-expanded',!w.hidden);if(!w.hidden&&!w.dataset.ready){w.dataset.ready=1;makePad(w,key,q)}};
+  if(pads[key]&&pads[key].open){$('padbtn').click()}}
+
+// ---------- handwriting pad ----------
+function makePad(w,key,q){
+  const P=pads[key]||(pads[key]={strokes:[],transcript:'',open:true});P.open=true;
+  w.innerHTML=`<div class="padtools"><div class="seg"><button aria-pressed="true" data-tool="pen">Pen</button><button aria-pressed="false" data-tool="erase">Eraser</button></div><button class="ghost" id="undo">Undo</button><button class="ghost" id="clr">Clear</button></div>
+   <div class="paper"><canvas id="cv" aria-label="Handwriting area"></canvas></div>
+   <div class="row"><button class="pri" id="ocr">Turn into text</button><span class="mute small" id="ocrst"></span></div>
+   <label class="field wide"><span>Your work as text (you can edit it)</span><textarea id="tx" rows="5" placeholder="Your handwriting shows up here as text.">${esc(P.transcript)}</textarea></label>
+   <div class="row"><button class="ghost" id="cp">Copy text</button><button class="ghost" id="use" ${q.choices?'hidden':''}>Put my answer in the box</button><button class="sec" id="chkwork">Check my work</button></div><div id="wf"></div>`;
+  const cv=$('cv'),ctx=cv.getContext('2d');let tool='pen',cur=null;const DPR=Math.max(1,window.devicePixelRatio||1);
+  const size=()=>{const W=cv.parentElement.clientWidth,H=Math.max(260,Math.min(420,W*.6));cv.style.height=H+'px';cv.width=W*DPR;cv.height=H*DPR;redraw()};
+  const seg=(s)=>{ctx.globalCompositeOperation=s.t==='erase'?'destination-out':'source-over';ctx.strokeStyle='#18222d';ctx.lineWidth=(s.t==='erase'?22:2.6)*DPR;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();s.p.forEach((pt,i)=>i?ctx.lineTo(pt[0]*DPR,pt[1]*DPR):ctx.moveTo(pt[0]*DPR,pt[1]*DPR));if(s.p.length===1)ctx.lineTo(s.p[0][0]*DPR+.1,s.p[0][1]*DPR);ctx.stroke()};
+  const redraw=()=>{ctx.clearRect(0,0,cv.width,cv.height);P.strokes.forEach(seg);ctx.globalCompositeOperation='source-over'};
+  const pos=e=>{const b=cv.getBoundingClientRect();return[e.clientX-b.left,e.clientY-b.top]};
+  cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);cur={t:tool,p:[pos(e)]};P.strokes.push(cur);seg(cur)});
+  cv.addEventListener('pointermove',e=>{if(!cur)return;const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];evs.forEach(ev=>cur.p.push(pos(ev)));const last=cur.p.slice(-evs.length-1);seg({t:cur.t,p:last})});
+  const end=()=>{cur=null;ctx.globalCompositeOperation='source-over'};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+  w.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{tool=b.dataset.tool;w.querySelectorAll('[data-tool]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  $('undo').onclick=()=>{P.strokes.pop();redraw()};$('clr').onclick=()=>{P.strokes=[];redraw()};
+  $('tx').oninput=e=>P.transcript=e.target.value;
+  new ResizeObserver(()=>size()).observe(cv.parentElement);size();
+  const st=$('ocrst');
+  const errMsg=c=>({not_granted:'Claude access was not allowed for this page.',images_unavailable:'This view cannot send pictures to Claude. Open the page in the Claude app or claude.ai.',rate_limited:'Too many requests right now. Wait a bit and try again.',session_expired:'Sign in to Claude again, then retry.',sampling_disabled:'Claude is not available for this account.',refused:'Claude could not read this. Try writing it again.'}[c]||'Something went wrong. Try again.');
+  $('ocr').onclick=async()=>{
+    if(!P.strokes.length){st.textContent='Write something first.';return}
+    if(!SAMPLE){st.textContent=SAMPLE_READY?'Handwriting reading works when this page is opened in Claude (claude.ai or the Claude app).':'Connecting to Claude… try again in a few seconds.';return}
+    const ex=document.createElement('canvas');ex.width=cv.width;ex.height=cv.height;const x=ex.getContext('2d');x.fillStyle='#ffffff';x.fillRect(0,0,ex.width,ex.height);x.drawImage(cv,0,0);
+    const blob=await new Promise(r=>ex.toBlob(r,'image/png'));$('ocr').disabled=true;st.textContent='Reading your handwriting…';
+    try{const res=await SAMPLE.json(`The image is a student's handwritten statistics work for this question:\n"${plain(q.text)}"\n\nTranscribe exactly what the student wrote, line by line, as plain text. Keep their numbers and mistakes as written; do not solve or correct anything. Write symbols as: μ, σ, x̄, p̂, √( ), ², ≤, ≥, ×, ÷. Then give the final answer number(s) the student wrote, in order, if any.\nReply with only JSON: {"transcript": "line 1\\nline 2", "final_answers": ["0.0359"]}`,{images:[blob],cache:false});
+      P.transcript=String(res.transcript||'');$('tx').value=P.transcript;P.finals=Array.isArray(res.final_answers)?res.final_answers:[];st.textContent=P.finals.length?'Done. Final answer found: '+P.finals.join(', '):'Done.'}
+    catch(e){st.textContent=errMsg(e.code)}finally{$('ocr').disabled=false}};
+  $('cp').onclick=async()=>{try{await navigator.clipboard.writeText($('tx').value);st.textContent='Copied.'}catch(e){$('tx').select();st.textContent='Press Ctrl+C (or long-press) to copy the selected text.'}};
+  $('use').onclick=()=>{let nums=(P.finals&&P.finals.length?P.finals:[]).map(String);if(!nums.length){const m=$('tx').value.match(/-?\d[\d,]*\.?\d*/g);nums=m?m.slice(-q.fields.length):[]}
+    if(!nums.length){st.textContent='No number found in your work.';return}
+    q.fields.forEach((f,i)=>{const el=$('f'+i);if(el&&nums[i]!=null&&!el.disabled){el.value=nums[i].replace(/[^\d.,\-%]/g,'');el.dispatchEvent(new Event('input'))}});st.textContent='Answer placed. Press Check.'};
+  $('chkwork').onclick=async()=>{const wf=$('wf'),work=$('tx').value.trim();if(!work){wf.innerHTML='<div class="fb no">Turn your writing into text first (or type your work in the box).</div>';return}
+    if(!SAMPLE){wf.innerHTML='<div class="fb no">Checking your work needs this page to be opened in Claude.</div>';return}
+    const ansTxt=q.choices?q.choices[q.correct]:q.fields.map(f=>`${f.label} = ${f.ans}`).join('; ');
+    wf.innerHTML='<div class="fb rev">Checking…</div>';$('chkwork').disabled=true;
+    try{await SAMPLE(`You are a friendly statistics tutor for a beginner. Question: "${plain(q.text)}"\nCorrect method: ${q.steps.map(plain).join(' ')}\nCorrect answer: ${ansTxt}\n\nStudent's work:\n${work}\n\nIn 2 to 4 short, plain sentences: say whether the method and numbers are right, and point to the FIRST mistake with a nudge on how to fix it. Do not reveal the correct final answer unless the student already got it. Small rounding differences are fine.`,{cache:false,onText:({text})=>{wf.innerHTML=`<div class="fb rev">${esc(text)}</div>`}})}
+    catch(e){wf.innerHTML=`<div class="fb no">${errMsg(e.code)}</div>`}finally{$('chkwork').disabled=false}}}
+
+// ---------- playgrounds ----------
+const numIn=(id,label,val)=>`<label class="field"><span>${label}</span><input type="text" id="${id}" inputmode="decimal" value="${val}"></label>`;
+const rd=(id,d)=>{const v=parseNum($(id).value);return isNaN(v)?d:v};
+const PLAY={
+ bands(el){el.innerHTML=`<div class="gbox" id="pgg"></div><div class="fields"><label class="field"><span>From (sd)</span><input type="range" id="b1" min="-3" max="3" value="-1"></label><label class="field"><span>To (sd)</span><input type="range" id="b2" min="-3" max="3" value="1"></label></div><div class="big" id="pgo"></div>`;
+  const u=()=>{let a=+$('b1').value,b=+$('b2').value;if(a>b)[a,b]=[b,a];$('pgg').innerHTML=graph({regions:[[a,b]]});$('pgo').textContent=a===b?'Pick two different edges.':`From z = ${a} to z = ${b}: ${band(a,b)}% of the data`};$('b1').oninput=u;$('b2').oninput=u;u()},
+ zscore(el){el.innerHTML=`<p class="mute small">Type any numbers from −100,000 to 100,000 (σ above 0).</p><div class="gbox" id="pgg"></div><div class="fields">${numIn('p1','Mean μ',70)}${numIn('p2','σ',10)}${numIn('p3','Value X',85)}</div><div class="big" id="pgo"></div>`;
+  const u=()=>{const c=(v,a,b)=>Math.min(b,Math.max(a,v));const mu=c(rd('p1',70),-1e5,1e5),sd=c(rd('p2',10),.01,1e5),x=c(rd('p3',85),-1e5,1e5);$('pgg').innerHTML=graph({mu,sd,markers:[{x,label:nf(x)}],regions:[x>=mu?[mu,x]:[x,mu]]});$('pgo').textContent=`z = (${nf(x)} − ${nf(mu)}) / ${nf(sd)} = ${f2((x-mu)/sd)}`};['p1','p2','p3'].forEach(i=>$(i).oninput=u);u()},
+ area(el){let mode='mid';el.innerHTML=`<div class="gbox" id="pgg"></div><label class="field"><span>z = <b id="zv">1.00</b></span><input type="range" id="zr" min="-3.49" max="3.49" step=".01" value="1"></label><div class="seg" id="mg"><button data-m="mid">0 to z</button><button data-m="left">Left of z</button><button data-m="right">Right of z</button></div><div class="big" id="pgo"></div>`;
+  const u=()=>{const z=+$('zr').value,a=A(z);$('zv').textContent=f2(z);let reg,t;if(mode==='mid'){reg=z>=0?[0,z]:[z,0];t=`Table: A(${f2(Math.abs(z))}) = ${f4(a)}`}else if(mode==='left'){reg=[null,z];t=z>=0?`Big side: 0.5 + ${f4(a)} = ${f4(.5+a)}`:`Tail: 0.5 − ${f4(a)} = ${f4(.5-a)}`}else{reg=[z,null];t=z>=0?`Tail: 0.5 − ${f4(a)} = ${f4(.5-a)}`:`Big side: 0.5 + ${f4(a)} = ${f4(.5+a)}`}
+   $('pgg').innerHTML=graph({regions:[reg],markers:[{x:z,label:f2(z)}],showZ:false});$('pgo').textContent=t;$('mg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===mode))};$('zr').oninput=u;$('mg').querySelectorAll('button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;u()});u()},
+ clt(el){el.innerHTML=`<p class="mute small">The faint curve is single values (σ). The solid curve is sample means (σ/√n). Slide n and watch it narrow.</p><div class="gbox" id="pgg"></div><div class="fields">${numIn('c1','μ',120)}${numIn('c2','σ',20)}<label class="field"><span>n = <b id="nv">35</b></span><input type="range" id="c3" min="1" max="100" value="35"></label></div><div class="big" id="pgo"></div>`;
+  const u=()=>{const mu=rd('c1',120),sd=Math.max(.01,rd('c2',20)),n=+$('c3').value,se=sd/Math.sqrt(n);$('nv').textContent=n;$('pgg').innerHTML=graph({mu,sd:se,ghost:{sd},showZ:false});$('pgo').textContent=`σx̄ = ${nf(sd)} / √${n} = ${nf(se,4)}`};['c1','c2'].forEach(i=>$(i).oninput=u);$('c3').oninput=u;u()},
+ binom(el){el.innerHTML=`<div class="gbox" id="pgg"></div><div class="fields"><label class="field"><span>n = <b id="nv">60</b></span><input type="range" id="n1" min="5" max="150" value="60"></label><label class="field"><span>p = <b id="pv">0.30</b></span><input type="range" id="n2" min=".01" max=".99" step=".01" value=".3"></label></div><div class="big" id="pgo"></div>`;
+  const u=()=>{const n=+$('n1').value,p=+$('n2').value,q=1-p,mu=n*p,sd=Math.sqrt(n*p*q);$('nv').textContent=n;$('pv').textContent=p.toFixed(2);$('pgg').innerHTML=graph({mu,sd,bars:{},showZ:false});const ok=mu>=5&&n*q>=5;
+   $('pgo').innerHTML=`np = ${nf(mu)}, nq = ${nf(n*q)} → ${ok?'normal approximation OK':'<span class="badtxt">not allowed (one is below 5)</span>'}<br>μ = ${nf(mu)}, σ = ${f2(sd)}`};$('n1').oninput=u;$('n2').oninput=u;u()},
+ ci(el){el.innerHTML=`<div class="gbox" id="pgg"></div><div class="fields">${numIn('i1','x̄',500)}${numIn('i2','σ',80)}${numIn('i3','n',40)}</div><div class="seg" id="cg"><button data-c="90">90%</button><button data-c="95">95%</button><button data-c="99">99%</button></div><div class="big" id="pgo"></div>`;let cl=95;
+  const u=()=>{const xb=rd('i1',500),sd=Math.max(.01,rd('i2',80)),n=Math.max(1,Math.round(rd('i3',40))),s=zCI(xb,sd,n,cl,true);$('pgg').innerHTML=graph({mu:xb,sd:s.se,regions:[[s.lo,s.hi]],ci:[s.lo,s.hi],markers:[{x:xb,label:'x̄'}],showZ:false});$('pgo').textContent=`E = ${ZC[cl]} × ${nf(sd)}/√${n} = ${nf(s.E,4)} → ${f2(s.lo)} < μ < ${f2(s.hi)}`;$('cg').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.c===cl))};
+  ['i1','i2','i3'].forEach(i=>$(i).oninput=u);$('cg').querySelectorAll('button').forEach(b=>b.onclick=()=>{cl=+b.dataset.c;u()});u()}};
+
+// ---------- tables dialog ----------
+function openTable(kind){const d=$('tbl');$('tbltitle').textContent=kind==='z'?'Z-table: area from 0 to z':'t-table: two-tailed confidence levels';$('tblbody').innerHTML=kind==='z'?'<p class="mute small">Row = z to one decimal. Column = second decimal. Example: z = 1.85 → row 1.8, column .05 → .4678</p>'+zTableHTML():'<p class="mute small">Row = degrees of freedom (n − 1). Column = confidence level.</p>'+tTableHTML();
+  if(d.showModal)d.showModal();else d.setAttribute('open','')}
+$('btnz').onclick=()=>openTable('z');$('btnt').onclick=()=>openTable('t');$('tblclose').onclick=()=>$('tbl').close?$('tbl').close():$('tbl').removeAttribute('open');
+// ---------- save / load progress file ----------
+function progressData(){return{app:'Z-Lab',version:1,savedAt:new Date().toISOString(),done,sets:S.sets,mode:S.mode,view:S.view,topic:S.topic,cover:COVER,pads:Object.fromEntries(Object.entries(pads).filter(([k,v])=>v.transcript).map(([k,v])=>[k,{transcript:v.transcript}]))}}
+function toast(msg){let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3500)}
+$('btnsave').onclick=async()=>{const json=JSON.stringify(progressData(),null,1),name=`zlab-progress-${new Date().toISOString().slice(0,10)}.json`;
+  try{const d=window.claude?.use?await window.claude.use('downloads'):null;if(d){await d.save({filename:name,data:json});toast('Progress saved.');return}}catch(e){}
+  try{const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Progress saved as '+name)}catch(e){toast('Could not save the file on this device.')}};
+$('btnload').onclick=()=>$('loadfile').click();
+$('loadfile').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d.app!=='Z-Lab'||typeof d.done!=='object')throw 0;
+  done=d.done||{};S.sets=d.sets||{};S.mode=d.mode||'practice';S.view=d.view||'home';S.topic=+d.topic||0;COVER=!!d.cover;Object.keys(cache).forEach(k=>delete cache[k]);
+  Object.entries(d.pads||{}).forEach(([k,v])=>pads[k]={strokes:[],transcript:v.transcript||'',open:false});
+  store.set('done',done);store.set('cover',COVER);render();scrollTo(0,0);toast(`Progress loaded: ${Object.keys(done).length} questions done.`)}catch(err){toast('That file is not a Z-Lab progress file.')}e.target.value=''};rd.readAsText(f)};
+
+render();
+
+</script>
